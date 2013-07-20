@@ -6,6 +6,8 @@ import org.apache.http.ParseException;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import com.giniem.gindpubs.GindActivity;
+
 import android.app.Activity;
 import android.os.AsyncTask;
 import android.view.ViewGroup.LayoutParams;
@@ -13,13 +15,13 @@ import android.widget.EditText;
 
 public class GindClientTask extends AsyncTask<String, Integer, JSONArray> {
 	
-	private Activity activity;
-	
 	private GindClient client;
 	
-	public GindClientTask(Activity _activity) {
-		this.activity = _activity;
+	private GindActivity activity;
+	
+	public GindClientTask(GindActivity parent) {
 		client = new GindClient();
+		activity = parent;
 	}
 	
 	public GindClient getGindClient() {
@@ -27,11 +29,7 @@ public class GindClientTask extends AsyncTask<String, Integer, JSONArray> {
 	}
 
 	protected void onPostExecute(final JSONArray result) {
-		EditText et=new EditText(activity);
-		et.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
-		et.setText(result.toString());
-		
-		activity.addContentView(et, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+		activity.parseShelf(result);
 	}
 
 	@Override
