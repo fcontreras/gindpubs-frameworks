@@ -29,12 +29,13 @@ public class GindClient {
 		Log.d(this.getClass().getName(),
 				"Sending request to get the shelf JSON data to URL " + url);
 
-		HttpResponse response = this.get(url);
+		DefaultHttpClient httpClient = new DefaultHttpClient();
+		HttpGet httpGet = new HttpGet(url);
+		HttpResponse response =httpClient.execute(httpGet);
 		if (null != response) {
 			if (response.getStatusLine().getStatusCode() == 200) {
-				HttpEntity entity = response.getEntity();
 				
-				String value = EntityUtils.toString(entity);
+				String value = EntityUtils.toString(response.getEntity());
 				
 				json = new JSONArray(value);
 				this.shelfJson = value;

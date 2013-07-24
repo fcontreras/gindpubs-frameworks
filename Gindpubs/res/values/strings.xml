@@ -4,5 +4,8 @@
     <string name="app_name">Gindpubs</string>
     <string name="action_settings">Settings</string>
     <string name="loadingUrl">file:///android_asset/loading.html</string>
+    <string name="inputDateFormat">yyyy-mm-dd hh:mm:ss</string>
+    <string name="outputDateFormat">dd MMM yyyy</string>
+    <string name="download">Download</string>
 
 </resources>

@@ -6,12 +6,9 @@ import org.apache.http.ParseException;
 import org.json.JSONArray;
 import org.json.JSONException;
 
-import com.giniem.gindpubs.GindActivity;
-
-import android.app.Activity;
 import android.os.AsyncTask;
-import android.view.ViewGroup.LayoutParams;
-import android.widget.EditText;
+
+import com.giniem.gindpubs.GindActivity;
 
 public class GindClientTask extends AsyncTask<String, Integer, JSONArray> {
 	
@@ -28,6 +25,7 @@ public class GindClientTask extends AsyncTask<String, Integer, JSONArray> {
 		return this.client;
 	}
 
+	@Override
 	protected void onPostExecute(final JSONArray result) {
 		activity.parseShelf(result);
 	}
