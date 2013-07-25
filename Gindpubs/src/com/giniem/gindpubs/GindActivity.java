@@ -2,6 +2,7 @@ package com.giniem.gindpubs;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -14,8 +15,8 @@ import android.view.Menu;
 import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.LinearLayout;
 import android.widget.TableLayout;
-import android.widget.TableRow;
 
 import com.giniem.gindpubs.client.GindClientTask;
 import com.giniem.gindpubs.views.MagazineThumb;
@@ -84,52 +85,62 @@ public class GindActivity extends Activity {
 			
 			TableLayout tableLayout = (TableLayout) findViewById(R.id.mainTable);
 			
-			TableRow tableRow = null;
+			LinearLayout linearLayout = null;
 			
 			int length = jsonArray.length();
+			SimpleDateFormat sdfInput = new SimpleDateFormat(getString(R.string.inputDateFormat), Locale.US);
+			SimpleDateFormat sdfOutput = new SimpleDateFormat(getString(R.string.outputDateFormat, Locale.US));
 			for (int i = 0; i < length; i++) {
 				json = new JSONObject(jsonArray.getString(i));
 				Log.i(this.getClass().getName(), "Parsing JSON object " + json);
+				
+				LinearLayout inner = new LinearLayout(this);
+				inner.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1));
+				inner.setGravity(Gravity.CENTER_HORIZONTAL);
 				
 				MagazineThumb thumb = new MagazineThumb(this);
 				thumb.setName(json.getString("name"));
 				thumb.setTitle(json.getString("title"));
 				thumb.setInfo(json.getString("info"));
-				
-				SimpleDateFormat sdfInput = new SimpleDateFormat(getString(R.string.inputDateFormat));
-				SimpleDateFormat sdfOutput = new SimpleDateFormat(getString(R.string.outputDateFormat));
+
 				Date date = sdfInput.parse(json.getString("date"));
-				
 				String dateString = sdfOutput.format(date);
+				
 				thumb.setDate(dateString);
 				thumb.setSize(json.getInt("size"));
 				thumb.setCover(json.getString("cover"));
 				thumb.setUrl(json.getString("url"));
-				//thumb.setMeasureWithLargestChildEnabled(true);
+				thumb.setMeasureWithLargestChildEnabled(false);
 				thumb.setPaddingRelative(5, 10, 5, 20);
 				thumb.init(this, null);
-				
-				thumb.setLayoutParams(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1.0f));
+				thumb.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
 
 				if (i % 2 == 0) {
-					if (null != tableRow) {
-						tableLayout.addView(tableRow);
+					if (null != linearLayout) {
+						tableLayout.addView(linearLayout);
 					}
-					tableRow = new TableRow(this);
-					tableRow.setGravity(Gravity.CENTER_HORIZONTAL);
-					tableRow.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
+					
+					linearLayout = new LinearLayout(this);
+					linearLayout.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+					
 				}
 				
-				tableRow.addView(thumb);
+				inner.addView(thumb);
+				linearLayout.addView(inner);
 			}
 			// Add the last row
-			if (null != tableRow) {
+			if (null != linearLayout) {
 				if (length % 2 != 0) {
+					LinearLayout inner = new LinearLayout(this);
+					inner.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1));
+					inner.setGravity(Gravity.CENTER_HORIZONTAL);
+					
 					View view = new View(this);
-					view.setLayoutParams(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1.0f));
-					tableRow.addView(view);
+					view.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+					inner.addView(view);
+					linearLayout.addView(inner);
 				}
-				tableLayout.addView(tableRow);
+				tableLayout.addView(linearLayout);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
