@@ -74,7 +74,7 @@ public class GindActivity extends Activity {
 		webview.loadUrl(getString(R.string.loadingUrl));
 	}
 
-	public void parseShelf(final JSONArray jsonArray) {
+	public void createThumbnails(final JSONArray jsonArray) {
 		Log.i(this.getClass().getName(),
 				"Shelf json contains " + jsonArray.length() + " elements.");
 
@@ -82,22 +82,25 @@ public class GindActivity extends Activity {
 		try {
 
 			this.setContentView(R.layout.activity_gind);
-			
+
 			TableLayout tableLayout = (TableLayout) findViewById(R.id.mainTable);
-			
+
 			LinearLayout linearLayout = null;
-			
+
 			int length = jsonArray.length();
-			SimpleDateFormat sdfInput = new SimpleDateFormat(getString(R.string.inputDateFormat), Locale.US);
-			SimpleDateFormat sdfOutput = new SimpleDateFormat(getString(R.string.outputDateFormat, Locale.US));
+			SimpleDateFormat sdfInput = new SimpleDateFormat(
+					getString(R.string.inputDateFormat), Locale.US);
+			SimpleDateFormat sdfOutput = new SimpleDateFormat(
+					getString(R.string.outputDateFormat), Locale.US);
 			for (int i = 0; i < length; i++) {
 				json = new JSONObject(jsonArray.getString(i));
 				Log.i(this.getClass().getName(), "Parsing JSON object " + json);
-				
+
 				LinearLayout inner = new LinearLayout(this);
-				inner.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1));
+				inner.setLayoutParams(new LinearLayout.LayoutParams(0,
+						LinearLayout.LayoutParams.MATCH_PARENT, 1));
 				inner.setGravity(Gravity.CENTER_HORIZONTAL);
-				
+
 				MagazineThumb thumb = new MagazineThumb(this);
 				thumb.setName(json.getString("name"));
 				thumb.setTitle(json.getString("title"));
@@ -105,7 +108,7 @@ public class GindActivity extends Activity {
 
 				Date date = sdfInput.parse(json.getString("date"));
 				String dateString = sdfOutput.format(date);
-				
+
 				thumb.setDate(dateString);
 				thumb.setSize(json.getInt("size"));
 				thumb.setCover(json.getString("cover"));
@@ -113,18 +116,22 @@ public class GindActivity extends Activity {
 				thumb.setMeasureWithLargestChildEnabled(false);
 				thumb.setPaddingRelative(5, 10, 5, 20);
 				thumb.init(this, null);
-				thumb.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+				thumb.setLayoutParams(new LinearLayout.LayoutParams(
+						LinearLayout.LayoutParams.WRAP_CONTENT,
+						LinearLayout.LayoutParams.WRAP_CONTENT));
 
 				if (i % 2 == 0) {
 					if (null != linearLayout) {
 						tableLayout.addView(linearLayout);
 					}
-					
+
 					linearLayout = new LinearLayout(this);
-					linearLayout.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-					
+					linearLayout.setLayoutParams(new LinearLayout.LayoutParams(
+							LinearLayout.LayoutParams.MATCH_PARENT,
+							LinearLayout.LayoutParams.WRAP_CONTENT));
+
 				}
-				
+
 				inner.addView(thumb);
 				linearLayout.addView(inner);
 			}
@@ -132,11 +139,14 @@ public class GindActivity extends Activity {
 			if (null != linearLayout) {
 				if (length % 2 != 0) {
 					LinearLayout inner = new LinearLayout(this);
-					inner.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1));
+					inner.setLayoutParams(new LinearLayout.LayoutParams(0,
+							LinearLayout.LayoutParams.MATCH_PARENT, 1));
 					inner.setGravity(Gravity.CENTER_HORIZONTAL);
-					
+
 					View view = new View(this);
-					view.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+					view.setLayoutParams(new LinearLayout.LayoutParams(
+							LinearLayout.LayoutParams.WRAP_CONTENT,
+							LinearLayout.LayoutParams.WRAP_CONTENT));
 					inner.addView(view);
 					linearLayout.addView(inner);
 				}
@@ -146,4 +156,5 @@ public class GindActivity extends Activity {
 			e.printStackTrace();
 		}
 	}
+	
 }

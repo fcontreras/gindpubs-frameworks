@@ -1,12 +1,7 @@
 package com.giniem.gindpubs.views;
 
-import java.net.URL;
-
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.AsyncTask;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -14,6 +9,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.giniem.gindpubs.BitmapCache;
 import com.giniem.gindpubs.R;
 
 public class MagazineThumb extends LinearLayout {
@@ -122,8 +118,9 @@ public class MagazineThumb extends LinearLayout {
 		inflater.inflate(R.layout.magazine_thumb_options, this, true);
 
 		ImageView imageView = (ImageView) getChildAt(0);
-		DownloadImageTask dit = new DownloadImageTask(imageView);
-		dit.execute(this.cover);
+		BitmapCache dit = new BitmapCache(context, imageView);
+		// We pass the cover URL and the name to save the cached image with that name.
+		dit.execute(this.cover, this.name);
 
 		 TextView tvTitle = (TextView) ((LinearLayout) getChildAt(1)).getChildAt(0);
 		 tvTitle.setEllipsize(null);
@@ -144,40 +141,6 @@ public class MagazineThumb extends LinearLayout {
 		 tvSize.setEllipsize(null);
 		 tvSize.setSingleLine(false);
 		 tvSize.setText("" + (this.size / 1048576) + " MB");
-	}
-
-	class DownloadImageTask extends AsyncTask<String, Integer, Bitmap> {
-
-		private ImageView imageView;
-		
-		public DownloadImageTask(ImageView iv) {
-			imageView = iv;
-		}
-		
-		@Override
-		protected Bitmap doInBackground(String... params) {
-			try {
-				
-				URL url = new URL(params[0]);
-				Bitmap bmp = BitmapFactory.decodeStream(url.openConnection()
-						.getInputStream());
-				return bmp;
-			} catch (Exception ex) {
-				ex.printStackTrace();
-				return null;
-			}
-		}
-
-		@Override
-		protected void onPostExecute(final Bitmap result) {
-			if (null != result) {
-				float ratio = 0.5f;
-				int width = Float.valueOf(result.getWidth() * ratio).intValue();
-				int height = Float.valueOf(result.getHeight() * ratio).intValue();
-				Bitmap bmp = Bitmap.createScaledBitmap(result, width, height, false);
-				imageView.setImageBitmap(bmp);
-			}
-		}
 	}
 
 }
