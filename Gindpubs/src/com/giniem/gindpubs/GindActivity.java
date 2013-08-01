@@ -35,7 +35,7 @@ public class GindActivity extends Activity {
 			GindClientTask asyncClient = new GindClientTask(this);
 
 			asyncClient.execute(Configuration.getNEWSSTAND_MANIFEST_URL());
-
+			
 			// Log.i(this.getClass().getName(), "App ID: " +
 			// this.getPackageName());
 			// AccountManager manager = AccountManager.get(this);

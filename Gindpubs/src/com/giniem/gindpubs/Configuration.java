@@ -3,7 +3,6 @@ package com.giniem.gindpubs;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.KeyRep.Type;
 import java.util.Properties;
 
 import android.content.Context;
