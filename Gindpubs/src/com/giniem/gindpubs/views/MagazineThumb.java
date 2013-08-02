@@ -12,9 +12,9 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.giniem.gindpubs.BitmapCache;
 import com.giniem.gindpubs.R;
-import com.giniem.gindpubs.client.DownloaderTask;
+import com.giniem.gindpubs.workers.BitmapCache;
+import com.giniem.gindpubs.workers.DownloaderTask;
 
 public class MagazineThumb extends LinearLayout {
 

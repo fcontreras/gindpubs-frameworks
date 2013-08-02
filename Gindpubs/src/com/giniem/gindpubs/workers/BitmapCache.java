@@ -1,8 +1,10 @@
-package com.giniem.gindpubs;
+package com.giniem.gindpubs.workers;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.net.URL;
+
+import com.giniem.gindpubs.Configuration;
 
 import android.content.Context;
 import android.graphics.Bitmap;

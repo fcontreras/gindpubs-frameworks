@@ -20,6 +20,7 @@ import android.widget.TableLayout;
 
 import com.giniem.gindpubs.client.GindClientTask;
 import com.giniem.gindpubs.views.MagazineThumb;
+import com.giniem.gindpubs.workers.UnzipperTask;
 
 public class GindActivity extends Activity {
 

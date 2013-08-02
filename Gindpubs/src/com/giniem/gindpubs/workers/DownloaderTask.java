@@ -1,4 +1,4 @@
-package com.giniem.gindpubs.client;
+package com.giniem.gindpubs.workers;
 
 import java.io.BufferedInputStream;
 import java.io.File;
