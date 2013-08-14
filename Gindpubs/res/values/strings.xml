@@ -9,5 +9,6 @@
     <string name="download">Download</string>
     <string name="watch">Watch</string>
     <string name="archive">Archive</string>
+    <string name="unzipping">Now Unzipping</string>
 
 </resources>

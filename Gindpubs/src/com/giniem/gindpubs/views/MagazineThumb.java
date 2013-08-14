@@ -11,10 +11,14 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.giniem.gindpubs.BookJson;
 import com.giniem.gindpubs.R;
 import com.giniem.gindpubs.workers.BitmapCache;
+import com.giniem.gindpubs.workers.BookJsonParserTask;
 import com.giniem.gindpubs.workers.DownloaderTask;
+import com.giniem.gindpubs.workers.UnzipperTask;
 
 public class MagazineThumb extends LinearLayout {
 
@@ -33,6 +37,8 @@ public class MagazineThumb extends LinearLayout {
 	private String url;
 	
 	private Integer sizeMB;
+	
+	private BookJson book;
 
 	public String getName() {
 		return name;
@@ -124,7 +130,7 @@ public class MagazineThumb extends LinearLayout {
 		super(context);
 	}
 
-	public void init(Context context, AttributeSet attrs) {
+	public void init(final Context context, AttributeSet attrs) {
 		setOrientation(LinearLayout.HORIZONTAL);
 		setGravity(Gravity.CENTER_VERTICAL);
 
@@ -168,7 +174,8 @@ public class MagazineThumb extends LinearLayout {
 				.getChildAt(5);
 		TextView tvProgress = (TextView) subLayout.getChildAt(0);
 		tvProgress.setText("0 MB / " + this.sizeMB + " MB");
-
+		
+		// Click on the DOWNLOAD button.
 		Button buttonDownload = (Button) ((LinearLayout) getChildAt(1))
 				.getChildAt(4);
 		buttonDownload.setOnClickListener(new View.OnClickListener() {
@@ -184,6 +191,18 @@ public class MagazineThumb extends LinearLayout {
 				downloader.execute(url, name);
 			}
 		});
+		
+		// Click on the VIEW button.
+		LinearLayout actionsLayout = (LinearLayout) ((LinearLayout) getChildAt(1))
+				.getChildAt(6);
+		Button buttonView = (Button) (actionsLayout.getChildAt(0));
+		buttonView.setOnClickListener(new View.OnClickListener() {
+			public void onClick(View v) {
+				BookJsonParserTask parser = new BookJsonParserTask(MagazineThumb.this);
+				parser.execute(name);
+			}
+		});
+		
 	}
 	
 	public void updateProgress(long progress, long fileProgress, long length) {
@@ -203,6 +222,16 @@ public class MagazineThumb extends LinearLayout {
 		progressBar.setProgress(intProgress);
 	}
 	
+	public void startUnzip() {
+		LinearLayout actionsUI = (LinearLayout) ((LinearLayout) getChildAt(1))
+				.getChildAt(5);
+		TextView tvProgress = (TextView) actionsUI.getChildAt(0);
+		tvProgress.setText(R.string.unzipping);
+		
+		UnzipperTask unzipper = new UnzipperTask(this);
+		unzipper.execute(this.name + ".zip", this.name);
+	}
+	
 	public void showActions() {
 		LinearLayout downloadingUI = (LinearLayout) ((LinearLayout) getChildAt(1))
 				.getChildAt(5);
@@ -211,6 +240,15 @@ public class MagazineThumb extends LinearLayout {
 		LinearLayout actionsUI = (LinearLayout) ((LinearLayout) getChildAt(1))
 				.getChildAt(6);
 		actionsUI.setVisibility(View.VISIBLE);
+	}
+	
+	public void setBookJson(BookJson bookJson) {
+		this.book = bookJson;
+		if (null != this.book) {
+			Toast.makeText(this.getContext(), this.book.getRendering(), Toast.LENGTH_LONG).show();
+		} else {
+			Toast.makeText(this.getContext(), "Not valid book.json found!", Toast.LENGTH_LONG).show();
+		}
 	}
 
 }

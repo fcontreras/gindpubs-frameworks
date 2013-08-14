@@ -10,7 +10,6 @@ import java.net.URLConnection;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import android.util.Log;
 
 import com.giniem.gindpubs.Configuration;
 import com.giniem.gindpubs.views.MagazineThumb;
@@ -71,14 +70,13 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
 	@Override
 	protected void onProgressUpdate(Long... progress) {
 		if (null != this.magThumb) {
-			Log.e("PROGRESS", "" + progress[0]);
 			this.magThumb.updateProgress(progress[0], progress[1], progress[2]);
 		}
     }
 	
 	@Override
 	protected void onPostExecute(final String result) {
-		this.magThumb.showActions();
+		this.magThumb.startUnzip();
 	}
 
 }

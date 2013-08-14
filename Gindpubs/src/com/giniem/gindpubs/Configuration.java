@@ -20,6 +20,7 @@ public class Configuration {
 	private static String THUMBNAILS_SUBDIR;
 	private static String JSON_FILENAME;
 	private static String MAGAZINES_SUBDIR;
+	private static String BOOKJSON_NAME;
 
 	public static String getNEWSSTAND_MANIFEST_URL() {
 		return NEWSSTAND_MANIFEST_URL;
@@ -49,6 +50,14 @@ public class Configuration {
 		return MAGAZINES_SUBDIR;
 	}
 	
+	public static String getBOOKJSON_NAME() {
+		return BOOKJSON_NAME;
+	}
+
+	public static void setBOOKJSON_NAME(String bOOKJSON_NAME) {
+		BOOKJSON_NAME = bOOKJSON_NAME;
+	}
+
 	private Configuration() {
 	}
 
@@ -69,6 +78,7 @@ public class Configuration {
 		THUMBNAILS_SUBDIR = properties.getProperty("THUMBNAILS_SUBDIR");
 		JSON_FILENAME = properties.getProperty("JSON_FILENAME");
 		MAGAZINES_SUBDIR = properties.getProperty("MAGAZINES_SUBDIR");
+		BOOKJSON_NAME = properties.getProperty("BOOKJSON_NAME");
 	}
 
 	// Tries to use external storage, if not available then fallback to intenal.

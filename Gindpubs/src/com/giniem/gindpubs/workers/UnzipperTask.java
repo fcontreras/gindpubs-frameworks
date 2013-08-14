@@ -14,17 +14,25 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.giniem.gindpubs.Configuration;
+import com.giniem.gindpubs.views.MagazineThumb;
 
-public class UnzipperTask extends AsyncTask<String, Long, Boolean> {
+public class UnzipperTask extends AsyncTask<String, Long, String> {
 
 	private File magazinesDirectory;
+	
+	private MagazineThumb magThumb;
 
 	public UnzipperTask(Context context) {
 		this.magazinesDirectory = Configuration.getDiskDir(context);
 	}
+	
+	public UnzipperTask(MagazineThumb thumb) {
+		this(thumb.getContext());
+		this.magThumb = thumb;
+	}
 
 	@Override
-	protected Boolean doInBackground(String... params) {
+	protected String doInBackground(String... params) {
 		InputStream input;
 		ZipInputStream zipInput;
 		try {
@@ -67,11 +75,11 @@ public class UnzipperTask extends AsyncTask<String, Long, Boolean> {
 			zipInput.close();
 		} catch (IOException e) {
 			e.printStackTrace();
-			return false;
+			return null;
 		}
 
 		Log.d(this.getClass().toString(), "Unzip process finished successfully.");
-		return true;
+		return params[0];
 	}
 
 	@Override
@@ -79,7 +87,8 @@ public class UnzipperTask extends AsyncTask<String, Long, Boolean> {
 	}
 
 	@Override
-	protected void onPostExecute(final Boolean result) {
+	protected void onPostExecute(final String result) {
+		this.magThumb.showActions();
 	}
 
 }

@@ -20,7 +20,6 @@ import android.widget.TableLayout;
 
 import com.giniem.gindpubs.client.GindClientTask;
 import com.giniem.gindpubs.views.MagazineThumb;
-import com.giniem.gindpubs.workers.UnzipperTask;
 
 public class GindActivity extends Activity {
 
@@ -111,7 +110,13 @@ public class GindActivity extends Activity {
 				String dateString = sdfOutput.format(date);
 
 				thumb.setDate(dateString);
-				thumb.setSize(json.getInt("size"));
+				
+				if (json.has("size")) {
+					thumb.setSize(json.getInt("size"));
+				} else {
+					thumb.setSize(0);
+				}
+				
 				thumb.setCover(json.getString("cover"));
 				thumb.setUrl(json.getString("url"));
 				thumb.setMeasureWithLargestChildEnabled(false);
