@@ -1,11 +1,16 @@
 package com.giniem.gindpubs.views;
 
+import java.io.File;
+
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -14,6 +19,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.giniem.gindpubs.BookJson;
+import com.giniem.gindpubs.Configuration;
 import com.giniem.gindpubs.R;
 import com.giniem.gindpubs.workers.BitmapCache;
 import com.giniem.gindpubs.workers.BookJsonParserTask;
@@ -35,9 +41,9 @@ public class MagazineThumb extends LinearLayout {
 	private String cover;
 
 	private String url;
-	
+
 	private Integer sizeMB;
-	
+
 	private BookJson book;
 
 	public String getName() {
@@ -139,7 +145,7 @@ public class MagazineThumb extends LinearLayout {
 		inflater.inflate(R.layout.magazine_thumb_options, this, true);
 
 		this.sizeMB = (this.size / 1048576);
-		
+
 		ImageView imageView = (ImageView) getChildAt(0);
 		BitmapCache dit = new BitmapCache(context, imageView);
 		// We pass the cover URL and the name to save the cached image with that
@@ -169,85 +175,110 @@ public class MagazineThumb extends LinearLayout {
 		tvSize.setEllipsize(null);
 		tvSize.setSingleLine(false);
 		tvSize.setText("" + this.sizeMB + " MB");
-		
+
 		LinearLayout subLayout = (LinearLayout) ((LinearLayout) getChildAt(1))
 				.getChildAt(5);
 		TextView tvProgress = (TextView) subLayout.getChildAt(0);
 		tvProgress.setText("0 MB / " + this.sizeMB + " MB");
-		
+
 		// Click on the DOWNLOAD button.
 		Button buttonDownload = (Button) ((LinearLayout) getChildAt(1))
 				.getChildAt(4);
 		buttonDownload.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
-				
+
 				Button button = (Button) v;
 				button.setVisibility(View.GONE);
 				LinearLayout parent = (LinearLayout) ((LinearLayout) getChildAt(1))
 						.getChildAt(5);
 				parent.setVisibility(View.VISIBLE);
-				
-				DownloaderTask downloader = new DownloaderTask(MagazineThumb.this);
+
+				DownloaderTask downloader = new DownloaderTask(
+						MagazineThumb.this);
 				downloader.execute(url, name);
 			}
 		});
-		
+
 		// Click on the VIEW button.
 		LinearLayout actionsLayout = (LinearLayout) ((LinearLayout) getChildAt(1))
 				.getChildAt(6);
 		Button buttonView = (Button) (actionsLayout.getChildAt(0));
 		buttonView.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
-				BookJsonParserTask parser = new BookJsonParserTask(MagazineThumb.this);
+				BookJsonParserTask parser = new BookJsonParserTask(
+						MagazineThumb.this);
 				parser.execute(name);
 			}
 		});
-		
+
 	}
-	
+
 	public void updateProgress(long progress, long fileProgress, long length) {
 		LinearLayout parent = (LinearLayout) ((LinearLayout) getChildAt(1))
 				.getChildAt(5);
-		
+
 		fileProgress = fileProgress / 1048576;
 		length = length / 1048576;
-		
+
 		TextView tvProgress = (TextView) parent.getChildAt(0);
-		tvProgress.setText(String.valueOf(fileProgress) + " MB / " + length + " MB");
-		
+		tvProgress.setText(String.valueOf(fileProgress) + " MB / " + length
+				+ " MB");
+
 		ProgressBar progressBar = (ProgressBar) parent.getChildAt(1);
-		
+
 		Integer intProgress = (int) (long) progress;
-		
+
 		progressBar.setProgress(intProgress);
 	}
-	
+
 	public void startUnzip() {
 		LinearLayout actionsUI = (LinearLayout) ((LinearLayout) getChildAt(1))
 				.getChildAt(5);
 		TextView tvProgress = (TextView) actionsUI.getChildAt(0);
 		tvProgress.setText(R.string.unzipping);
-		
+
 		UnzipperTask unzipper = new UnzipperTask(this);
 		unzipper.execute(this.name + ".zip", this.name);
 	}
-	
+
 	public void showActions() {
 		LinearLayout downloadingUI = (LinearLayout) ((LinearLayout) getChildAt(1))
 				.getChildAt(5);
 		downloadingUI.setVisibility(View.GONE);
-		
+
 		LinearLayout actionsUI = (LinearLayout) ((LinearLayout) getChildAt(1))
 				.getChildAt(6);
 		actionsUI.setVisibility(View.VISIBLE);
 	}
-	
+
 	public void setBookJson(BookJson bookJson) {
 		this.book = bookJson;
+
 		if (null != this.book) {
-			Toast.makeText(this.getContext(), this.book.getRendering(), Toast.LENGTH_LONG).show();
+			// TEST: set content view and load url on web view
+			Activity activity = (Activity) this.getContext();
+			activity.setContentView(R.layout.html_viewer);
+			WebView webview = (WebView) activity.findViewById(R.id.viewMagazine);
+
+			webview.setWebViewClient(new WebViewClient() {
+
+				@Override
+				public boolean shouldOverrideUrlLoading(WebView view, String url) {
+					view.loadUrl(url);
+					return true;
+				}
+			});
+
+			String indexName = "file:///"
+					+ Configuration.getDiskDir(this.getContext()).getPath()
+					+ File.separator + this.name + File.separator
+					+ this.book.getContents().get(0);
+
+			webview.loadUrl(indexName);
+			// END TEST
 		} else {
-			Toast.makeText(this.getContext(), "Not valid book.json found!", Toast.LENGTH_LONG).show();
+			Toast.makeText(this.getContext(), "Not valid book.json found!",
+					Toast.LENGTH_LONG).show();
 		}
 	}
 

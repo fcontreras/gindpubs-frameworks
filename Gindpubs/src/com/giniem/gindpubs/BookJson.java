@@ -197,13 +197,13 @@ public class BookJson {
 //		this.url = json.getString("url");
 //		this.cover = json.getString("cover");
 //		this.orientation = json.getString("orientation");
-		this.zoomable = json.getBoolean("zoomable");
+//		this.zoomable = json.getBoolean("zoomable");
 //		this.background = json.getString("-baker-background");
 //		this.verticalBounce = json.getBoolean("-baker-vertical-bounce");
-		this.indexHeight = json.getInt("-baker-index-height");
+//		this.indexHeight = json.getInt("-baker-index-height");
 //		this.mediaDisplay = json.getBoolean("-baker-media-autoplay");
 //		this.pageNumberColors = json.getString("-baker-page-numbers-color");
-		this.rendering = json.getString("-baker-rendering");
+//		this.rendering = json.getString("-baker-rendering");
 //		this.pageTurnTap = json.getBoolean("-baker-page-turn-tap");
 
 //		JSONArray authors = new JSONArray(json.getString("author"));

@@ -13,6 +13,8 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.LinearLayout;
@@ -28,12 +30,17 @@ public class GindActivity extends Activity {
 		super.onCreate(savedInstanceState);
 
 		try {
+			//Remove title bar
+			this.requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+			//Remove notification bar
+			this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+			
 			// Load configuration, then you are ready to get the properties.
 			Configuration.load(this);
 
 			// We get the shelf json asynchronously.
 			GindClientTask asyncClient = new GindClientTask(this);
-
 			asyncClient.execute(Configuration.getNEWSSTAND_MANIFEST_URL());
 			
 			// Log.i(this.getClass().getName(), "App ID: " +
@@ -62,7 +69,7 @@ public class GindActivity extends Activity {
 
 	public void loadingScreen() {
 		setContentView(R.layout.loading);
-		WebView webview = (WebView) findViewById(R.id.webView1);
+		WebView webview = (WebView) findViewById(R.id.loadingWebView);
 		webview.setWebViewClient(new WebViewClient() {
 
 			@Override

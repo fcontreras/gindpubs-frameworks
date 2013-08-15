@@ -75,7 +75,7 @@ public class BookJsonParserTask extends AsyncTask<String, Long, BookJson> {
 
 	private boolean validateJson(final String rawJson) {
 		boolean result = true;
-		String required[] = {"contents", "zoomable", "-baker-index-height", "-baker-rendering"};
+		String required[] = {"contents"};
 		
 		try {
 			JSONObject json = new JSONObject(rawJson);

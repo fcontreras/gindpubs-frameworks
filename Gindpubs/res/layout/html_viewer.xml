@@ -2,12 +2,12 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center|center_horizontal|center_vertical"
     android:orientation="vertical" >
 
     <WebView
-        android:id="@+id/loadingWebView"
+        android:id="@+id/viewMagazine"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:visibility="visible" />
 
 </LinearLayout>
