@@ -15,6 +15,8 @@ public class BookJson {
 
 	private int hpub;
 
+	private String magazineName;
+	
 	private String title;
 
 	private List<String> authors;
@@ -46,6 +48,26 @@ public class BookJson {
 	private boolean pageTurnTap;
 
 	private List<String> contents;
+	
+	public BookJson() {
+		this.hpub = 0;
+		this.date = new Date();
+		this.authors = new ArrayList<String>();
+		this.creators = new ArrayList<String>();
+		this.contents = new ArrayList<String>();
+		this.title = "";
+		this.url = "";
+		this.cover = "";
+		this.orientation = "";
+		this.zoomable = false;
+		this.background = "";
+		this.verticalBounce = false;
+		this.indexHeight = 0;
+		this.mediaDisplay = false;
+		this.pageNumberColors = "";
+		this.rendering = "";
+		this.pageTurnTap = false;
+	}
 
 	public int getHpub() {
 		return hpub;
@@ -181,6 +203,14 @@ public class BookJson {
 
 	public void setContents(List<String> contents) {
 		this.contents = contents;
+	}
+
+	public String getMagazineName() {
+		return magazineName;
+	}
+
+	public void setMagazineName(String magazineName) {
+		this.magazineName = magazineName;
 	}
 
 	public void fromJson(final String jsonString) throws JSONException,

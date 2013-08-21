@@ -1,16 +1,11 @@
 package com.giniem.gindpubs.views;
 
-import java.io.File;
-
-import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -19,7 +14,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.giniem.gindpubs.BookJson;
-import com.giniem.gindpubs.Configuration;
+import com.giniem.gindpubs.GindActivity;
 import com.giniem.gindpubs.R;
 import com.giniem.gindpubs.workers.BitmapCache;
 import com.giniem.gindpubs.workers.BookJsonParserTask;
@@ -176,9 +171,9 @@ public class MagazineThumb extends LinearLayout {
 		tvSize.setSingleLine(false);
 		tvSize.setText("" + this.sizeMB + " MB");
 
-		LinearLayout subLayout = (LinearLayout) ((LinearLayout) getChildAt(1))
+		LinearLayout downloadLayout = (LinearLayout) ((LinearLayout) getChildAt(1))
 				.getChildAt(5);
-		TextView tvProgress = (TextView) subLayout.getChildAt(0);
+		TextView tvProgress = (TextView) downloadLayout.getChildAt(0);
 		tvProgress.setText("0 MB / " + this.sizeMB + " MB");
 
 		// Click on the DOWNLOAD button.
@@ -242,6 +237,10 @@ public class MagazineThumb extends LinearLayout {
 	}
 
 	public void showActions() {
+		Button buttonDownload = (Button) ((LinearLayout) getChildAt(1))
+				.getChildAt(4);
+			buttonDownload.setVisibility(View.GONE);
+		
 		LinearLayout downloadingUI = (LinearLayout) ((LinearLayout) getChildAt(1))
 				.getChildAt(5);
 		downloadingUI.setVisibility(View.GONE);
@@ -255,31 +254,12 @@ public class MagazineThumb extends LinearLayout {
 		this.book = bookJson;
 
 		if (null != this.book) {
-			// TEST: set content view and load url on web view
-			Activity activity = (Activity) this.getContext();
-			activity.setContentView(R.layout.html_viewer);
-			WebView webview = (WebView) activity.findViewById(R.id.viewMagazine);
+			GindActivity activity = (GindActivity) this.getContext();
+			activity.viewMagazine(this.book);
 
-			webview.setWebViewClient(new WebViewClient() {
-
-				@Override
-				public boolean shouldOverrideUrlLoading(WebView view, String url) {
-					view.loadUrl(url);
-					return true;
-				}
-			});
-
-			String indexName = "file:///"
-					+ Configuration.getDiskDir(this.getContext()).getPath()
-					+ File.separator + this.name + File.separator
-					+ this.book.getContents().get(0);
-
-			webview.loadUrl(indexName);
-			// END TEST
 		} else {
 			Toast.makeText(this.getContext(), "Not valid book.json found!",
 					Toast.LENGTH_LONG).show();
 		}
 	}
-
 }

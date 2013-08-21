@@ -1,13 +1,16 @@
 package com.giniem.gindpubs;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
@@ -19,30 +22,36 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.LinearLayout;
 import android.widget.TableLayout;
+import android.widget.Toast;
 
 import com.giniem.gindpubs.client.GindClientTask;
 import com.giniem.gindpubs.views.MagazineThumb;
 
 public class GindActivity extends Activity {
 
+	public final static String BOOK_JSON_KEY = "com.giniem.gindpubs.BOOK_JSON_KEY";
+	public final static String MAGAZINE_NAME = "com.giniem.gindpubs.MAGAZINE_NAME";
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		try {
-			//Remove title bar
+			// Remove title bar
 			this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-			//Remove notification bar
-			this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-			
+			// Remove notification bar
+			this.getWindow().setFlags(
+					WindowManager.LayoutParams.FLAG_FULLSCREEN,
+					WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
 			// Load configuration, then you are ready to get the properties.
 			Configuration.load(this);
 
 			// We get the shelf json asynchronously.
 			GindClientTask asyncClient = new GindClientTask(this);
 			asyncClient.execute(Configuration.getNEWSSTAND_MANIFEST_URL());
-			
+
 			// Log.i(this.getClass().getName(), "App ID: " +
 			// this.getPackageName());
 			// AccountManager manager = AccountManager.get(this);
@@ -56,7 +65,7 @@ public class GindActivity extends Activity {
 			e.printStackTrace();
 			Log.e(this.getClass().getName(), "Cannot load configuration.");
 		}
-
+		// setPagerView();
 		loadingScreen();
 	}
 
@@ -117,18 +126,21 @@ public class GindActivity extends Activity {
 				String dateString = sdfOutput.format(date);
 
 				thumb.setDate(dateString);
-				
+
 				if (json.has("size")) {
 					thumb.setSize(json.getInt("size"));
 				} else {
 					thumb.setSize(0);
 				}
-				
+
 				thumb.setCover(json.getString("cover"));
 				thumb.setUrl(json.getString("url"));
-				thumb.setMeasureWithLargestChildEnabled(false);
-				thumb.setPaddingRelative(5, 10, 5, 20);
+				// thumb.setMeasureWithLargestChildEnabled(false);
+				thumb.setPadding(5, 10, 5, 10);
 				thumb.init(this, null);
+				if (this.magazineExists(thumb.getName())) {
+					thumb.showActions();
+				}
 				thumb.setLayoutParams(new LinearLayout.LayoutParams(
 						LinearLayout.LayoutParams.WRAP_CONTENT,
 						LinearLayout.LayoutParams.WRAP_CONTENT));
@@ -169,5 +181,26 @@ public class GindActivity extends Activity {
 			e.printStackTrace();
 		}
 	}
-	
+
+	public void viewMagazine(final BookJson book) {
+		Intent intent = new Intent(this, MagazineActivity.class);
+	    try {
+			intent.putExtra(BOOK_JSON_KEY, book.toJSON().toString());
+			intent.putExtra(MAGAZINE_NAME, book.getMagazineName());
+		    startActivity(intent);
+		} catch (JSONException e) {
+			Toast.makeText(this, "The book.json is invalid.",
+					Toast.LENGTH_LONG).show();
+		}
+	}
+
+	private boolean magazineExists(final String name) {
+		boolean result = false;
+
+		File magazine = new File(Configuration.getDiskDir(this).getPath()
+				+ File.separator + name);
+		result = magazine.exists() && magazine.isDirectory();
+
+		return result;
+	}
 }

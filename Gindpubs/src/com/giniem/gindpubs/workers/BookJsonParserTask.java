@@ -60,6 +60,7 @@ public class BookJsonParserTask extends AsyncTask<String, Long, BookJson> {
 			    Log.d(this.getClass().toString(), "Book.json is valid.");
 		    	result = new BookJson();
 		    	result.fromJson(rawJson);
+		    	result.setMagazineName(this.magThumb.getName());
 		    } else {
 			    Log.d(this.getClass().toString(), "Book.json is NOT valid.");
 		    }
