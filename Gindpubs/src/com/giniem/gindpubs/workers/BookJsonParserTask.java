@@ -15,6 +15,7 @@ import android.util.Log;
 
 import com.giniem.gindpubs.BookJson;
 import com.giniem.gindpubs.Configuration;
+import com.giniem.gindpubs.R;
 import com.giniem.gindpubs.views.MagazineThumb;
 
 public class BookJsonParserTask extends AsyncTask<String, Long, BookJson> {
@@ -37,7 +38,7 @@ public class BookJsonParserTask extends AsyncTask<String, Long, BookJson> {
 		BookJson result  = null;
 		
 		String workingDir = this.magazinesDirectory.getPath() + File.separator;
-		File book = new File(workingDir + params[0] + File.separator + Configuration.getBOOKJSON_NAME());
+		File book = new File(workingDir + params[0] + File.separator + this.magThumb.getContext().getString(R.string.book));
 		
 		String rawJson;
 		

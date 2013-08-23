@@ -13,6 +13,7 @@ import android.os.AsyncTask;
 
 import com.giniem.gindpubs.Configuration;
 import com.giniem.gindpubs.GindActivity;
+import com.giniem.gindpubs.R;
 
 public class GindClientTask extends AsyncTask<String, Integer, JSONArray> {
 	
@@ -52,13 +53,13 @@ public class GindClientTask extends AsyncTask<String, Integer, JSONArray> {
 			if (Configuration.hasInternetConnection(this.activity)) {
 				json = client.shelfJsonGet(params[0]);
 
-				File output = new File(directory.getPath() + File.separator + Configuration.getJSON_FILENAME());
+				File output = new File(directory.getPath() + File.separator + this.activity.getString(R.string.shelf));
 				FileOutputStream out = new FileOutputStream(output);
 				out.write(json.toString().getBytes());
 				out.close();
 				
 			} else {
-				File input = new File(directory.getPath() + File.separator + Configuration.getJSON_FILENAME());
+				File input = new File(directory.getPath() + File.separator + this.activity.getString(R.string.shelf));
 				FileInputStream in = new FileInputStream(input);
 				byte[] buffer = new byte[1024];
 				StringBuffer rawData = new StringBuffer("");

@@ -5,7 +5,7 @@ import android.util.AttributeSet;
 import android.webkit.WebView;
 
 public class CustomWebView extends WebView {
-
+	
 	public CustomWebView(Context context) {
         super(context);
     }
@@ -13,7 +13,7 @@ public class CustomWebView extends WebView {
 	public CustomWebView(Context context, AttributeSet attrs) {
 		super(context, attrs);
 	}
-
+	
 	/**
 	 * API 14 already has a function canScrollHorizontally defined, we just added this
 	 * to support devices before API 14.

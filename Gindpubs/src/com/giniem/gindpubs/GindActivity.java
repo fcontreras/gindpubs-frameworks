@@ -45,12 +45,9 @@ public class GindActivity extends Activity {
 					WindowManager.LayoutParams.FLAG_FULLSCREEN,
 					WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-			// Load configuration, then you are ready to get the properties.
-			Configuration.load(this);
-
 			// We get the shelf json asynchronously.
 			GindClientTask asyncClient = new GindClientTask(this);
-			asyncClient.execute(Configuration.getNEWSSTAND_MANIFEST_URL());
+			asyncClient.execute(getString(R.string.newstand_manifest_url));
 
 			// Log.i(this.getClass().getName(), "App ID: " +
 			// this.getPackageName());

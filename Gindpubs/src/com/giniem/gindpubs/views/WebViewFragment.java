@@ -6,8 +6,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
+import android.webkit.WebChromeClient;
 
 import com.giniem.gindpubs.R;
 
@@ -25,16 +24,7 @@ public class WebViewFragment extends Fragment {
 		Bundle args = getArguments();
 		CustomWebView view = (CustomWebView) rootView.findViewById(R.id.webpage1);
 		view.getSettings().setJavaScriptEnabled(true);
-		view.getSettings().setSupportZoom(true);
-		view.getSettings().setBuiltInZoomControls(true);
-		view.setWebViewClient(new WebViewClient() {
-
-			@Override
-			public boolean shouldOverrideUrlLoading(WebView view, String url) {
-				view.loadUrl(url);
-				return true;
-			}
-		});
+		view.setWebChromeClient(new WebChromeClient());
 		view.loadUrl(args.getString(ARG_OBJECT));
 		return rootView;
 	}

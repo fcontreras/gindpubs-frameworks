@@ -1,6 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
+    
+    <!-- Strings to configure the application's behaviour -->
+    
+    <!-- Shelf URL -->
+    <string name="newstand_manifest_url">http://rofilsa.giniem.com/magazine/json-list/device/iPad/env/PRODUCTION/app_id/:app_id</string>
+	<string name="purchase_confirmation_url">http://bakerframework.com/demo/shelf.json</string>
+	<string name="purchases_url">http://bakerframework.com/demo/shelf.json</string>
+	<string name="post_apns_token_url">http://bakerframework.com/demo/shelf.json</string>
+	
+	<!-- Path to store the cache for the thumbnails inside the system's cache directory. -->
+	<string name="thumbnails">thumbnails</string>
+	
+	<!-- Path in the device storage where to save the magazine files. -->
+	<string name="magazines">magazines</string>
+	
+	<!-- Filename of the cached json file. The file will be updated if the user has internet access. -->
+	<string name="shelf">shelf.json</string>
+	
+	<!-- Name of the json that describes the magazine. -->
+	<string name="book">book.json</string>
+	
+	<!-- Name of the magazine's index file. -->
+	<string name="index">index.html</string>
+    
+    <!-- General strings for the UI -->
     <string name="app_name">Gindpubs</string>
     <string name="action_settings">Settings</string>
     <string name="loadingUrl">file:///android_asset/loading.html</string>
@@ -11,4 +35,7 @@
     <string name="archive">Archive</string>
     <string name="unzipping">Now Unzipping</string>
 
+    <!-- Thumbnails styles -->
+    
+    
 </resources>
