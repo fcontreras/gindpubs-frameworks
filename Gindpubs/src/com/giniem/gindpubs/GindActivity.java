@@ -15,16 +15,15 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
-import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.LinearLayout;
-import android.widget.TableLayout;
 import android.widget.Toast;
 
 import com.giniem.gindpubs.client.GindClientTask;
+import com.giniem.gindpubs.views.FlowLayout;
 import com.giniem.gindpubs.views.MagazineThumb;
 
 public class GindActivity extends Activity {
@@ -62,7 +61,6 @@ public class GindActivity extends Activity {
 			e.printStackTrace();
 			Log.e(this.getClass().getName(), "Cannot load configuration.");
 		}
-		// setPagerView();
 		loadingScreen();
 	}
 
@@ -76,6 +74,7 @@ public class GindActivity extends Activity {
 	public void loadingScreen() {
 		setContentView(R.layout.loading);
 		WebView webview = (WebView) findViewById(R.id.loadingWebView);
+		webview.getSettings().setUseWideViewPort(true);
 		webview.setWebViewClient(new WebViewClient() {
 
 			@Override
@@ -96,9 +95,7 @@ public class GindActivity extends Activity {
 
 			this.setContentView(R.layout.activity_gind);
 
-			TableLayout tableLayout = (TableLayout) findViewById(R.id.mainTable);
-
-			LinearLayout linearLayout = null;
+			FlowLayout flowLayout = (FlowLayout) findViewById(R.id.thumbsContainer);
 
 			int length = jsonArray.length();
 			SimpleDateFormat sdfInput = new SimpleDateFormat(
@@ -115,6 +112,7 @@ public class GindActivity extends Activity {
 				inner.setGravity(Gravity.CENTER_HORIZONTAL);
 
 				MagazineThumb thumb = new MagazineThumb(this);
+				//thumb.setBackgroundColor(Color.CYAN);
 				thumb.setName(json.getString("name"));
 				thumb.setTitle(json.getString("title"));
 				thumb.setInfo(json.getString("info"));
@@ -132,47 +130,12 @@ public class GindActivity extends Activity {
 
 				thumb.setCover(json.getString("cover"));
 				thumb.setUrl(json.getString("url"));
-				// thumb.setMeasureWithLargestChildEnabled(false);
-				thumb.setPadding(5, 10, 5, 10);
 				thumb.init(this, null);
 				if (this.magazineExists(thumb.getName())) {
 					thumb.showActions();
 				}
-				thumb.setLayoutParams(new LinearLayout.LayoutParams(
-						LinearLayout.LayoutParams.WRAP_CONTENT,
-						LinearLayout.LayoutParams.WRAP_CONTENT));
 
-				if (i % 2 == 0) {
-					if (null != linearLayout) {
-						tableLayout.addView(linearLayout);
-					}
-
-					linearLayout = new LinearLayout(this);
-					linearLayout.setLayoutParams(new LinearLayout.LayoutParams(
-							LinearLayout.LayoutParams.MATCH_PARENT,
-							LinearLayout.LayoutParams.WRAP_CONTENT));
-
-				}
-
-				inner.addView(thumb);
-				linearLayout.addView(inner);
-			}
-			// Add the last row
-			if (null != linearLayout) {
-				if (length % 2 != 0) {
-					LinearLayout inner = new LinearLayout(this);
-					inner.setLayoutParams(new LinearLayout.LayoutParams(0,
-							LinearLayout.LayoutParams.MATCH_PARENT, 1));
-					inner.setGravity(Gravity.CENTER_HORIZONTAL);
-
-					View view = new View(this);
-					view.setLayoutParams(new LinearLayout.LayoutParams(
-							LinearLayout.LayoutParams.WRAP_CONTENT,
-							LinearLayout.LayoutParams.WRAP_CONTENT));
-					inner.addView(view);
-					linearLayout.addView(inner);
-				}
-				tableLayout.addView(linearLayout);
+				flowLayout.addView(thumb);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

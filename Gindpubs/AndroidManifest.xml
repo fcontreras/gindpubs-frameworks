@@ -17,6 +17,7 @@
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
+        android:hardwareAccelerated="true"
         android:theme="@style/AppTheme" >
         <activity
             android:name="com.giniem.gindpubs.GindActivity"
@@ -29,10 +30,20 @@
         </activity>
         <activity
             android:name="com.giniem.gindpubs.MagazineActivity"
-            android:parentActivityName="com.giniem.gindpubs.GindActivity" >
+            android:parentActivityName="com.giniem.gindpubs.GindActivity"
+        	android:configChanges="orientation|screenSize" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.giniem.gindpubs.GindActivity" />
+        </activity>
+        <activity
+            android:name="com.giniem.gindpubs.VideoActivity"
+            android:label="@string/title_activity_video" 
+        	android:configChanges="orientation|screenSize"
+            android:parentActivityName="com.giniem.gindpubs.MagazineActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.giniem.gindpubs.MagazineActivity" />
         </activity>
     </application>
 

@@ -7,13 +7,23 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebChromeClient;
+import android.widget.FrameLayout;
+import android.widget.VideoView;
 
 import com.giniem.gindpubs.R;
 
 @SuppressLint("SetJavaScriptEnabled")
 public class WebViewFragment extends Fragment {
-	public static final String ARG_OBJECT = "object";
 
+	public static final String ARG_OBJECT = "object";
+	public static VideoView videoView;
+	
+	private CustomWebView webView;
+    private FrameLayout customViewContainer;
+    private WebChromeClient.CustomViewCallback customViewCallback;
+    private View customView;
+    public CustomChromeClient chromeClient = new CustomChromeClient();
+    
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
@@ -22,10 +32,67 @@ public class WebViewFragment extends Fragment {
 		View rootView = inflater.inflate(R.layout.fragment_collection_object,
 				container, false);
 		Bundle args = getArguments();
-		CustomWebView view = (CustomWebView) rootView.findViewById(R.id.webpage1);
-		view.getSettings().setJavaScriptEnabled(true);
-		view.setWebChromeClient(new WebChromeClient());
-		view.loadUrl(args.getString(ARG_OBJECT));
+
+		customViewContainer = (FrameLayout) this.getActivity().findViewById(R.id.customViewContainer);
+		
+		webView = (CustomWebView) rootView.findViewById(R.id.webpage1);
+		webView.getSettings().setJavaScriptEnabled(true);
+		webView.setWebChromeClient(chromeClient);
+		webView.loadUrl(args.getString(ARG_OBJECT));
+		
 		return rootView;
 	}
+	
+	public String getUrl() {
+		return this.webView.getUrl();
+	}
+	
+	public boolean inCustomView() {
+        return (customView != null);
+    }
+
+    public void hideCustomView() {
+    	chromeClient.onHideCustomView();
+    }
+	
+	class CustomChromeClient extends WebChromeClient {
+
+        @Override
+        public void onShowCustomView(View view, int requestedOrientation, CustomViewCallback callback) {
+           onShowCustomView(view, callback);
+        }
+
+        @Override
+        public void onShowCustomView(View view,CustomViewCallback callback) {
+
+            if (customView != null) {
+                callback.onCustomViewHidden();
+                return;
+            }
+            customView = view;
+            webView.setVisibility(View.GONE);
+            customViewContainer.setVisibility(View.VISIBLE);
+            customViewContainer.addView(view);
+            customViewCallback = callback;
+        }
+
+        @Override
+        public void onHideCustomView() {
+            super.onHideCustomView();
+            if (customView == null)
+                return;
+
+            webView.setVisibility(View.VISIBLE);
+            customViewContainer.setVisibility(View.GONE);
+
+            // Hide the custom view.
+            customView.setVisibility(View.GONE);
+
+            // Remove the custom view from its container.
+            customViewContainer.removeView(customView);
+            customViewCallback.onCustomViewHidden();
+
+            customView = null;
+        }
+    }
 }

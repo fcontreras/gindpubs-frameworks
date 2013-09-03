@@ -40,6 +40,8 @@ public class MagazineThumb extends LinearLayout {
 	private Integer sizeMB;
 
 	private BookJson book;
+	
+	private LinearLayout parent;
 
 	public String getName() {
 		return name;
@@ -138,55 +140,58 @@ public class MagazineThumb extends LinearLayout {
 		LayoutInflater inflater = (LayoutInflater) context
 				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		inflater.inflate(R.layout.magazine_thumb_options, this, true);
+		parent = (LinearLayout) getChildAt(0);
 
 		this.sizeMB = (this.size / 1048576);
-
-		ImageView imageView = (ImageView) getChildAt(0);
-		BitmapCache dit = new BitmapCache(context, imageView);
-		// We pass the cover URL and the name to save the cached image with that
-		// name.
-		dit.execute(this.cover, this.name);
-
-		TextView tvTitle = (TextView) ((LinearLayout) getChildAt(1))
+		
+		ImageView imageView = (ImageView) parent.getChildAt(0);
+		try {
+			BitmapCache dit = new BitmapCache(context, imageView);
+			// We pass the cover URL and the name to save the cached image with that
+			// name.
+			dit.execute(this.cover, this.name);
+		} catch (Exception ex) {
+		}
+		TextView tvTitle = (TextView) ((LinearLayout) parent.getChildAt(1))
 				.getChildAt(0);
 		tvTitle.setEllipsize(null);
 		tvTitle.setSingleLine(false);
 		tvTitle.setText(this.title);
 
-		TextView tvInfo = (TextView) ((LinearLayout) getChildAt(1))
+		TextView tvInfo = (TextView) ((LinearLayout) parent.getChildAt(1))
 				.getChildAt(1);
 		tvInfo.setEllipsize(null);
 		tvInfo.setSingleLine(false);
 		tvInfo.setText(this.info);
 
-		TextView tvDate = (TextView) ((LinearLayout) getChildAt(1))
+		TextView tvDate = (TextView) ((LinearLayout) parent.getChildAt(1))
 				.getChildAt(2);
 		tvDate.setEllipsize(null);
 		tvDate.setSingleLine(false);
 		tvDate.setText(this.date);
 
-		TextView tvSize = (TextView) ((LinearLayout) getChildAt(1))
+		TextView tvSize = (TextView) ((LinearLayout) parent.getChildAt(1))
 				.getChildAt(3);
 		tvSize.setEllipsize(null);
 		tvSize.setSingleLine(false);
 		tvSize.setText("" + this.sizeMB + " MB");
 
-		LinearLayout downloadLayout = (LinearLayout) ((LinearLayout) getChildAt(1))
+		LinearLayout downloadLayout = (LinearLayout) ((LinearLayout) parent.getChildAt(1))
 				.getChildAt(5);
 		TextView tvProgress = (TextView) downloadLayout.getChildAt(0);
 		tvProgress.setText("0 MB / " + this.sizeMB + " MB");
 
 		// Click on the DOWNLOAD button.
-		Button buttonDownload = (Button) ((LinearLayout) getChildAt(1))
+		Button buttonDownload = (Button) ((LinearLayout) parent.getChildAt(1))
 				.getChildAt(4);
 		buttonDownload.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 
 				Button button = (Button) v;
 				button.setVisibility(View.GONE);
-				LinearLayout parent = (LinearLayout) ((LinearLayout) getChildAt(1))
+				LinearLayout progress = (LinearLayout) ((LinearLayout) parent.getChildAt(1))
 						.getChildAt(5);
-				parent.setVisibility(View.VISIBLE);
+				progress.setVisibility(View.VISIBLE);
 
 				DownloaderTask downloader = new DownloaderTask(
 						MagazineThumb.this);
@@ -195,7 +200,7 @@ public class MagazineThumb extends LinearLayout {
 		});
 
 		// Click on the VIEW button.
-		LinearLayout actionsLayout = (LinearLayout) ((LinearLayout) getChildAt(1))
+		LinearLayout actionsLayout = (LinearLayout) ((LinearLayout) parent.getChildAt(1))
 				.getChildAt(6);
 		Button buttonView = (Button) (actionsLayout.getChildAt(0));
 		buttonView.setOnClickListener(new View.OnClickListener() {
@@ -209,17 +214,17 @@ public class MagazineThumb extends LinearLayout {
 	}
 
 	public void updateProgress(long progress, long fileProgress, long length) {
-		LinearLayout parent = (LinearLayout) ((LinearLayout) getChildAt(1))
+		LinearLayout progressLayout = (LinearLayout) ((LinearLayout) parent.getChildAt(1))
 				.getChildAt(5);
 
 		fileProgress = fileProgress / 1048576;
 		length = length / 1048576;
 
-		TextView tvProgress = (TextView) parent.getChildAt(0);
+		TextView tvProgress = (TextView) progressLayout.getChildAt(0);
 		tvProgress.setText(String.valueOf(fileProgress) + " MB / " + length
 				+ " MB");
 
-		ProgressBar progressBar = (ProgressBar) parent.getChildAt(1);
+		ProgressBar progressBar = (ProgressBar) progressLayout.getChildAt(1);
 
 		Integer intProgress = (int) (long) progress;
 
@@ -227,7 +232,7 @@ public class MagazineThumb extends LinearLayout {
 	}
 
 	public void startUnzip() {
-		LinearLayout actionsUI = (LinearLayout) ((LinearLayout) getChildAt(1))
+		LinearLayout actionsUI = (LinearLayout) ((LinearLayout) parent.getChildAt(1))
 				.getChildAt(5);
 		TextView tvProgress = (TextView) actionsUI.getChildAt(0);
 		tvProgress.setText(R.string.unzipping);
@@ -237,15 +242,15 @@ public class MagazineThumb extends LinearLayout {
 	}
 
 	public void showActions() {
-		Button buttonDownload = (Button) ((LinearLayout) getChildAt(1))
+		Button buttonDownload = (Button) ((LinearLayout) parent.getChildAt(1))
 				.getChildAt(4);
 			buttonDownload.setVisibility(View.GONE);
 		
-		LinearLayout downloadingUI = (LinearLayout) ((LinearLayout) getChildAt(1))
+		LinearLayout downloadingUI = (LinearLayout) ((LinearLayout) parent.getChildAt(1))
 				.getChildAt(5);
 		downloadingUI.setVisibility(View.GONE);
 
-		LinearLayout actionsUI = (LinearLayout) ((LinearLayout) getChildAt(1))
+		LinearLayout actionsUI = (LinearLayout) ((LinearLayout) parent.getChildAt(1))
 				.getChildAt(6);
 		actionsUI.setVisibility(View.VISIBLE);
 	}

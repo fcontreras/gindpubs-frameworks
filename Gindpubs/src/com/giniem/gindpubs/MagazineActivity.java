@@ -5,6 +5,8 @@ import java.io.File;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Intent;
+import android.graphics.Color;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
@@ -12,32 +14,35 @@ import android.support.v4.app.NavUtils;
 import android.support.v4.view.GestureDetectorCompat;
 import android.util.Log;
 import android.view.GestureDetector;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
 import com.giniem.gindpubs.views.CustomWebView;
 import com.giniem.gindpubs.views.CustomWebViewPager;
+import com.giniem.gindpubs.views.WebViewFragment;
 import com.giniem.gindpubs.views.WebViewFragmentPagerAdapter;
 
 public class MagazineActivity extends FragmentActivity {
 
 	private GestureDetectorCompat gestureDetector;
-	
+	private WebViewFragmentPagerAdapter webViewPagerAdapter;
+	private CustomWebViewPager pager;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
 		// We would like to keep the screen on while reading the magazine
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-		
+
 		// Remove title bar
 		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
@@ -58,8 +63,9 @@ public class MagazineActivity extends FragmentActivity {
 					.getStringExtra(GindActivity.MAGAZINE_NAME));
 			book.fromJson(intent.getStringExtra(GindActivity.BOOK_JSON_KEY));
 			this.setPagerView(book);
-			
-			gestureDetector = new GestureDetectorCompat(this, new MyGestureListener());
+
+			gestureDetector = new GestureDetectorCompat(this,
+					new MyGestureListener());
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			Toast.makeText(this, "Not valid book.json found!",
@@ -103,87 +109,98 @@ public class MagazineActivity extends FragmentActivity {
 
 	@SuppressLint("SetJavaScriptEnabled")
 	private void setPagerView(final BookJson book) {
-		
+
 		String path = "file:///" + Configuration.getDiskDir(this).getPath()
 				+ File.separator;
 
 		// ViewPager and its adapters use support library
 		// fragments, so use getSupportFragmentManager.
-		WebViewFragmentPagerAdapter mDemoCollectionPagerAdapter = new WebViewFragmentPagerAdapter(
+		webViewPagerAdapter = new WebViewFragmentPagerAdapter(
 				getSupportFragmentManager(), book, path);
-		final CustomWebViewPager pager = (CustomWebViewPager) findViewById(R.id.pager);
-		pager.setAdapter(mDemoCollectionPagerAdapter);
+		pager = (CustomWebViewPager) findViewById(R.id.pager);
+		pager.setAdapter(webViewPagerAdapter);
 
 		CustomWebView viewIndex = (CustomWebView) findViewById(R.id.webViewIndex);
-
-		// We will use for the index 1/3 of the window size
-//		DisplayMetrics displaymetrics = new DisplayMetrics();
-//		getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
-//		int width = displaymetrics.widthPixels / 3;
-//		viewIndex.setLayoutParams(new FrameLayout.LayoutParams(width,
-//				LayoutParams.MATCH_PARENT));
-		
 		viewIndex.getSettings().setJavaScriptEnabled(true);
 		viewIndex.getSettings().setUseWideViewPort(true);
-		viewIndex.setInitialScale(1);
-		viewIndex.getSettings().setPluginState(WebSettings.PluginState.ON);
-		viewIndex.setWebViewClient(new WebViewClient(){
-			
+		viewIndex.setWebViewClient(new WebViewClient() {
+
 			@Override
-			public boolean shouldOverrideUrlLoading (WebView view, String url) {
+			public boolean shouldOverrideUrlLoading(WebView view, String url) {
 				if (!url.startsWith("file://")) {
-					return false;
+					Uri uri = Uri.parse(url);
+					Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+					startActivity(intent);
+				} else {
+					url = url.substring(url.lastIndexOf("/") + 1);
+					int index = book.getContents().indexOf(url);
+
+					Log.d(this.getClass().toString(), "Index to load: " + index
+							+ ", page: " + url);
+
+					pager.setCurrentItem(index);
+					view.setVisibility(View.GONE);
 				}
-				url = url.substring(url.lastIndexOf("/") + 1);
-				int index = book.getContents().indexOf(url);
-				
-				Log.d(this.getClass().toString(), "Index to load: " + index + ", page: " + url);
-				
-				pager.setCurrentItem(index);
 				return true;
 			}
 		});
-				
+		viewIndex.setBackgroundColor(Color.argb(1, 0, 0, 0));
 		viewIndex.loadUrl(path + book.getMagazineName() + File.separator
 				+ "index.html");
 	}
-	
+
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if (keyCode == KeyEvent.KEYCODE_BACK) {
+
+			WebViewFragment fragment = (WebViewFragment) this.webViewPagerAdapter
+					.instantiateItem(pager, pager.getCurrentItem());
+
+			if (fragment.inCustomView()) {
+				fragment.hideCustomView();
+				return true;
+			}
+		}
+		return super.onKeyDown(keyCode, event);
+	}
+
 	@Override
 	public boolean dispatchTouchEvent(MotionEvent event) {
 		// Intercept the touch events.
 		this.gestureDetector.onTouchEvent(event);
-		
+
 		// We call the superclass implementation for the touch
 		// events to continue along children.
 		return super.dispatchTouchEvent(event);
 	}
-	
+
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		this.gestureDetector.onTouchEvent(event);
-		
+
 		// We call the superclass implementation.
 		return super.onTouchEvent(event);
 	}
 
 	/**
-	 * Used to handle the gestures, but we will only need the onDoubleTap.
-	 * The other events will be passed to children views.
+	 * Used to handle the gestures, but we will only need the onDoubleTap. The
+	 * other events will be passed to children views.
+	 * 
 	 * @author Holland
-	 *
+	 * 
 	 */
-	class MyGestureListener extends GestureDetector.SimpleOnGestureListener  {
-		
+	class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
+
 		@Override
-        public boolean onDoubleTap(MotionEvent event) {
+		public boolean onDoubleTap(MotionEvent event) {
 			CustomWebView viewIndex = (CustomWebView) findViewById(R.id.webViewIndex);
 			if (viewIndex.isShown()) {
 				viewIndex.setVisibility(View.GONE);
 			} else {
 				viewIndex.setVisibility(View.VISIBLE);
 			}
-			
-            return true;
-        }
+
+			return true;
+		}
 	}
 }

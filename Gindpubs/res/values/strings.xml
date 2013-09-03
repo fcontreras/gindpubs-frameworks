@@ -1,41 +1,114 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    
-    <!-- Strings to configure the application's behaviour -->
-    
+
+    <!-- Properties to configure the application's UI and behaviour -->
+
+
     <!-- Shelf URL -->
     <string name="newstand_manifest_url">http://rofilsa.giniem.com/magazine/json-list/device/iPad/env/PRODUCTION/app_id/:app_id</string>
-	<string name="purchase_confirmation_url">http://bakerframework.com/demo/shelf.json</string>
-	<string name="purchases_url">http://bakerframework.com/demo/shelf.json</string>
-	<string name="post_apns_token_url">http://bakerframework.com/demo/shelf.json</string>
-	
-	<!-- Path to store the cache for the thumbnails inside the system's cache directory. -->
-	<string name="thumbnails">thumbnails</string>
-	
-	<!-- Path in the device storage where to save the magazine files. -->
-	<string name="magazines">magazines</string>
-	
-	<!-- Filename of the cached json file. The file will be updated if the user has internet access. -->
-	<string name="shelf">shelf.json</string>
-	
-	<!-- Name of the json that describes the magazine. -->
-	<string name="book">book.json</string>
-	
-	<!-- Name of the magazine's index file. -->
-	<string name="index">index.html</string>
-    
+    <string name="purchase_confirmation_url">http://bakerframework.com/demo/shelf.json</string>
+    <string name="purchases_url">http://bakerframework.com/demo/shelf.json</string>
+    <string name="post_apns_token_url">http://bakerframework.com/demo/shelf.json</string>
+
+    <!-- Path to store the cache for the thumbnails inside the system's cache directory. -->
+    <string name="thumbnails">thumbnails</string>
+
+    <!-- Path in the device storage where to save the magazine files. -->
+    <string name="magazines">magazines</string>
+
+    <!-- Filename of the cached json file. The file will be updated if the user has internet access. -->
+    <string name="shelf">shelf.json</string>
+
+    <!-- Name of the json that describes the magazine. -->
+    <string name="book">book.json</string>
+
+    <!-- Name of the magazine's index file. -->
+    <string name="index">index.html</string>
+
     <!-- General strings for the UI -->
     <string name="app_name">Gindpubs</string>
     <string name="action_settings">Settings</string>
     <string name="loadingUrl">file:///android_asset/loading.html</string>
-    <string name="inputDateFormat">yyyy-mm-dd hh:mm:ss</string>
+    <string name="inputDateFormat">yyyy-MM-dd hh:mm:ss</string>
     <string name="outputDateFormat">dd MMM yyyy</string>
     <string name="download">Download</string>
     <string name="read">Read</string>
     <string name="archive">Archive</string>
     <string name="unzipping">Now Unzipping</string>
+    <string name="thumbImageDescription">Thumbnail</string>
 
     <!-- Thumbnails styles -->
-    
-    
+
+    <dimen name="thumbnail_width">200dp</dimen>
+    <dimen name="thumbnail_height">120dp</dimen>
+
+    <!-- Cover -->
+    <dimen name="cover_width">90dp</dimen>
+    <dimen name="cover_height">120dp</dimen>
+
+    <!-- Title -->
+    <string name="cover_background_color">#000000</string>
+    <string name="title_font">Helvetica-Bold</string>
+
+    <dimen name="title_font_size">13sp</dimen>
+
+    <color name="title_font_color">#F7F6F9</color>
+
+    <!-- Info -->
+    <string name="info_font">Helvetica</string>
+
+    <dimen name="info_font_size">13sp</dimen>
+
+    <color name="info_font_color">#DCDBDD</color>
+
+    <!-- Date -->
+    <string name="date_font">Helvetica</string>
+
+    <dimen name="date_font_size">13sp</dimen>
+
+    <color name="date_font_color">#24B2DC</color>
+
+    <!-- Size -->
+    <string name="size_font">Helvetica-Bold</string>
+
+    <dimen name="size_font_size">11sp</dimen>
+
+    <color name="size_font_color">#FFFFFF</color>
+
+    <!-- Download -->
+    <string name="download_font">Helvetica-Bold</string>
+
+    <dimen name="download_font_size">12sp</dimen>
+
+    <color name="download_font_color">#FFFFFF</color>
+    <color name="download_font_background_color">#504F50</color>
+
+    <!-- Read -->
+    <string name="read_font">Helvetica-Bold</string>
+
+    <dimen name="read_font_size">11sp</dimen>
+
+    <color name="read_font_color">#FFFFFF</color>
+    <color name="read_font_background_color">#504F50</color>
+
+    <!-- Archive -->
+    <string name="archive_font">Helvetica-Bold</string>
+
+    <dimen name="archive_font_size">11sp</dimen>
+
+    <color name="archive_font_color">#504F50</color>
+    <color name="archive_font_background_color">#FFFFFF</color>
+
+    <!-- Progress -->
+    <string name="progress_font">Helvetica</string>
+
+    <dimen name="progress_font_size">11sp</dimen>
+
+    <color name="progress_font_color">#A5A4A6</color>
+    <color name="progress_bar_color">#B72529</color>
+    <color name="progress_bar_background">#000000</color>
+
+    <string name="title_activity_video">VideoActivity</string>
+    <string name="hello_world">Hello world!</string>
+
 </resources>
