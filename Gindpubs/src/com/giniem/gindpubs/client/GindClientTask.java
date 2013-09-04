@@ -1,19 +1,19 @@
 package com.giniem.gindpubs.client;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-
-import org.apache.http.ParseException;
-import org.json.JSONArray;
-import org.json.JSONException;
-
 import android.os.AsyncTask;
 
 import com.giniem.gindpubs.Configuration;
 import com.giniem.gindpubs.GindActivity;
 import com.giniem.gindpubs.R;
+
+import org.apache.http.ParseException;
+import org.json.JSONArray;
+import org.json.JSONException;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 public class GindClientTask extends AsyncTask<String, Integer, JSONArray> {
 	
@@ -51,7 +51,14 @@ public class GindClientTask extends AsyncTask<String, Integer, JSONArray> {
 			}
 			
 			if (Configuration.hasInternetConnection(this.activity)) {
-				json = client.shelfJsonGet(params[0]);
+                String baseUrl = params[0];
+                String appId = params[1];
+                String userId = params[2];
+
+                // We will replace the placeholders for the app_id and user_id.
+                baseUrl = baseUrl.replace(":app_id", appId).replace(":user_id", userId);
+
+				json = client.shelfJsonGet(baseUrl);
 
 				File output = new File(directory.getPath() + File.separator + this.activity.getString(R.string.shelf));
 				FileOutputStream out = new FileOutputStream(output);

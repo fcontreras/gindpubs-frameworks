@@ -1,6 +1,6 @@
 package com.giniem.gindpubs.client;
 
-import java.io.IOException;
+import android.util.Log;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.ParseException;
@@ -10,7 +10,7 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 
-import android.util.Log;
+import java.io.IOException;
 
 public class GindClient {
 	
@@ -22,7 +22,7 @@ public class GindClient {
 
 	public JSONArray shelfJsonGet(final String url) throws JSONException,
 			ParseException, IOException {
-		JSONArray json = new JSONArray();
+		JSONArray json;
 		BasicResult basicResult = new BasicResult();
 
 		Log.d(this.getClass().getName(),
@@ -30,7 +30,7 @@ public class GindClient {
 
 		DefaultHttpClient httpClient = new DefaultHttpClient();
 		HttpGet httpGet = new HttpGet(url);
-		HttpResponse response =httpClient.execute(httpGet);
+		HttpResponse response = httpClient.execute(httpGet);
 		if (null != response) {
 			if (response.getStatusLine().getStatusCode() == 200) {
 				

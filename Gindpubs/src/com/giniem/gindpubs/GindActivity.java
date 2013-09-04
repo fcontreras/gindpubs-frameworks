@@ -1,17 +1,11 @@
 package com.giniem.gindpubs;
 
-import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.Settings.Secure;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
@@ -25,6 +19,15 @@ import android.widget.Toast;
 import com.giniem.gindpubs.client.GindClientTask;
 import com.giniem.gindpubs.views.FlowLayout;
 import com.giniem.gindpubs.views.MagazineThumb;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class GindActivity extends Activity {
 
@@ -44,18 +47,32 @@ public class GindActivity extends Activity {
 					WindowManager.LayoutParams.FLAG_FULLSCREEN,
 					WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-			// We get the shelf json asynchronously.
-			GindClientTask asyncClient = new GindClientTask(this);
-			asyncClient.execute(getString(R.string.newstand_manifest_url));
+			AccountManager manager = AccountManager.get(this);
+			Account[] accounts = manager.getAccountsByType("com.google");
+            String userAccount = "";
 
-			// Log.i(this.getClass().getName(), "App ID: " +
-			// this.getPackageName());
-			// AccountManager manager = AccountManager.get(this);
-			// Account[] accounts = manager.getAccounts();
-			//
-			// for (Account account : accounts) {
-			// Log.i(this.getClass().getName(), account.name);
-			// }
+            // If we can't get a google account, then we will have to use
+            // any account the user have on the phone.
+            if (accounts.length == 0) {
+                accounts = manager.getAccounts();
+            }
+
+            if (accounts.length != 0) {
+                // We will use the first account on the list.
+                userAccount = accounts[0].type + "_" + accounts[0].name;
+            } else {
+                // Wow, if we still do not have any working account
+                // then we will have to use the ANDROID_ID,
+                // Read: http://developer.android.com/reference/android/provider/Settings.Secure.html#ANDROID_ID
+                Log.e(this.getClass().toString(), "USER ACCOUNT COULD NOT BE RETRIEVED, WILL USE ANDROID_ID.");
+                userAccount = Secure.getString(this.getContentResolver(), Secure.ANDROID_ID);
+            }
+
+            Log.d(this.getClass().getName(), "APP_ID: " + this.getString(R.string.app_id) + ", USER_ID: " + userAccount);
+
+            // We get the shelf json asynchronously.
+            GindClientTask asyncClient = new GindClientTask(this);
+            asyncClient.execute(getString(R.string.newstand_manifest_url), this.getString(R.string.app_id), userAccount);
 
 		} catch (Exception e) {
 			e.printStackTrace();
