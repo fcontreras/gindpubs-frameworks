@@ -18,3 +18,25 @@ local.properties
 # Eclipse project files
 .classpath
 .project
+
+Gindpubs/.idea/.name
+
+Gindpubs/.idea/compiler.xml
+
+Gindpubs/.idea/copyright/profiles_settings.xml
+
+Gindpubs/.idea/encodings.xml
+
+Gindpubs/.idea/libraries/android_support_v4.xml
+
+Gindpubs/.idea/misc.xml
+
+Gindpubs/.idea/modules.xml
+
+Gindpubs/.idea/scopes/scope_settings.xml
+
+Gindpubs/.idea/vcs.xml
+
+Gindpubs/.idea/workspace.xml
+
+Gindpubs/Gindpubs.iml
