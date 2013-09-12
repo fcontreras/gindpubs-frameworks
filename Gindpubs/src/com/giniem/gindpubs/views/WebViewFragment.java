@@ -8,7 +8,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebChromeClient;
 import android.widget.FrameLayout;
-import android.widget.VideoView;
 
 import com.giniem.gindpubs.R;
 
@@ -16,7 +15,6 @@ import com.giniem.gindpubs.R;
 public class WebViewFragment extends Fragment {
 
 	public static final String ARG_OBJECT = "object";
-	public static VideoView videoView;
 	
 	private CustomWebView webView;
     private FrameLayout customViewContainer;
@@ -39,9 +37,16 @@ public class WebViewFragment extends Fragment {
 		webView.getSettings().setJavaScriptEnabled(true);
 		webView.setWebChromeClient(chromeClient);
 		webView.loadUrl(args.getString(ARG_OBJECT));
-		
+
 		return rootView;
 	}
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        this.getWebView().destroy();
+    }
 	
 	public String getUrl() {
 		return this.webView.getUrl();
@@ -54,7 +59,11 @@ public class WebViewFragment extends Fragment {
     public void hideCustomView() {
     	chromeClient.onHideCustomView();
     }
-	
+
+    public CustomWebView getWebView() {
+        return this.webView;
+    }
+
 	class CustomChromeClient extends WebChromeClient {
 
         @Override

@@ -1,7 +1,6 @@
 package com.giniem.gindpubs.views;
 
-import java.io.File;
-
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -9,19 +8,24 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 
 import com.giniem.gindpubs.BookJson;
 
+import java.io.File;
+
 public class WebViewFragmentPagerAdapter extends FragmentStatePagerAdapter {
 
 	private BookJson book;
 
 	private String magazinePath;
+
+    private Context context;
 	
 	public WebViewFragmentPagerAdapter(FragmentManager fm) {
 		super(fm);
 	}
 
 	public WebViewFragmentPagerAdapter(FragmentManager fm, BookJson book,
-			final String magazinePath) {
+			final String magazinePath, Context context) {
 		super(fm);
+        this.context = context;
 		if (null == book) {
 			this.book = new BookJson();
 		} else {
@@ -36,14 +40,12 @@ public class WebViewFragmentPagerAdapter extends FragmentStatePagerAdapter {
 
 	@Override
 	public Fragment getItem(int i) {
-		Fragment fragment = new WebViewFragment();
-		Bundle args = new Bundle();
-
+        Bundle args = new Bundle();
 		args.putString(WebViewFragment.ARG_OBJECT,
 				this.magazinePath + book.getMagazineName() + File.separator
 						+ book.getContents().get(i));
-		fragment.setArguments(args);
-		return fragment;
+
+        return Fragment.instantiate(context, WebViewFragment.class.getName(), args);
 	}
 
 	@Override

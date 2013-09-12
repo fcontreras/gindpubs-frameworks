@@ -59,7 +59,7 @@
     <!-- Info -->
     <string name="info_font">Helvetica</string>
 
-    <dimen name="info_font_size">13sp</dimen>
+    <dimen name="info_font_size">11sp</dimen>
 
     <color name="info_font_color">#DCDBDD</color>
 

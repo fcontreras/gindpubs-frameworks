@@ -1,7 +1,5 @@
 package com.giniem.gindpubs;
 
-import java.io.File;
-
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Intent;
@@ -30,11 +28,21 @@ import com.giniem.gindpubs.views.CustomWebViewPager;
 import com.giniem.gindpubs.views.WebViewFragment;
 import com.giniem.gindpubs.views.WebViewFragmentPagerAdapter;
 
+import java.io.File;
+
 public class MagazineActivity extends FragmentActivity {
 
 	private GestureDetectorCompat gestureDetector;
 	private WebViewFragmentPagerAdapter webViewPagerAdapter;
 	private CustomWebViewPager pager;
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        WebViewFragment fragment = (WebViewFragment) webViewPagerAdapter.instantiateItem(pager, pager.getCurrentItem());
+        fragment.getWebView().destroy();
+    }
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -116,7 +124,7 @@ public class MagazineActivity extends FragmentActivity {
 		// ViewPager and its adapters use support library
 		// fragments, so use getSupportFragmentManager.
 		webViewPagerAdapter = new WebViewFragmentPagerAdapter(
-				getSupportFragmentManager(), book, path);
+				getSupportFragmentManager(), book, path, this);
 		pager = (CustomWebViewPager) findViewById(R.id.pager);
 		pager.setAdapter(webViewPagerAdapter);
 
@@ -144,7 +152,7 @@ public class MagazineActivity extends FragmentActivity {
 				return true;
 			}
 		});
-		viewIndex.setBackgroundColor(Color.argb(1, 0, 0, 0));
+        viewIndex.setBackgroundColor(Color.TRANSPARENT);
 		viewIndex.loadUrl(path + book.getMagazineName() + File.separator
 				+ "index.html");
 	}
