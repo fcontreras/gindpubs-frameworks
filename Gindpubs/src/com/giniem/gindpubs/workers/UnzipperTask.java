@@ -43,43 +43,48 @@ public class UnzipperTask extends AsyncTask<String, Long, String> {
 			// First we create a directory to hold the unzipped files.
 			String workingDir = this.magazinesDirectory.getPath() + File.separator;
 			File containerDir = new File(workingDir + params[1]);
-			containerDir.mkdirs();
-			
-			input = new FileInputStream(workingDir + params[0]);
-			
-			workingDir = workingDir + params[1] + File.separator;
-			zipInput = new ZipInputStream(new BufferedInputStream(input));
-			ZipEntry zipEntry;
-			byte[] buffer = new byte[1024];
-			int read;
+            Log.e(this.getClass().getName(), "Magazine Directory: " + containerDir);
+			if (containerDir.mkdirs()) {
+                input = new FileInputStream(params[0]);
 
-			while ((zipEntry = zipInput.getNextEntry()) != null) {
-				
-				zipEntryName = zipEntry.getName();
-				Log.d(this.getClass().toString(), "Unzipping entry " + zipEntryName);
-				if (zipEntry.isDirectory()) {
-					File innerDirectory = new File(workingDir + zipEntryName);
-					innerDirectory.mkdirs();
-					continue;
-				}
+                workingDir = workingDir + params[1] + File.separator;
+                zipInput = new ZipInputStream(new BufferedInputStream(input));
+                ZipEntry zipEntry;
+                byte[] buffer = new byte[1024];
+                int read;
 
-				FileOutputStream output = new FileOutputStream(workingDir + zipEntryName);
-				while ((read = zipInput.read(buffer)) != -1) {
-					output.write(buffer, 0, read);
-				}
+                while ((zipEntry = zipInput.getNextEntry()) != null) {
 
-				output.close();
-				zipInput.closeEntry();
-			}
+                    zipEntryName = zipEntry.getName();
+                    Log.d(this.getClass().toString(), "Unzipping entry " + zipEntryName);
+                    if (zipEntry.isDirectory()) {
+                        File innerDirectory = new File(workingDir + zipEntryName);
+                        innerDirectory.mkdirs();
+                        continue;
+                    }
 
-			zipInput.close();
+                    FileOutputStream output = new FileOutputStream(workingDir + zipEntryName);
+                    while ((read = zipInput.read(buffer)) != -1) {
+                        output.write(buffer, 0, read);
+                    }
+
+                    output.close();
+                    zipInput.closeEntry();
+                }
+
+                zipInput.close();
+            } else {
+                Log.e(this.getClass().getName(), "Could not create the package directory");
+                //TODO: Notify the user
+                return null;
+            }
 		} catch (IOException e) {
 			e.printStackTrace();
 			return null;
 		}
 
 		Log.d(this.getClass().toString(), "Unzip process finished successfully.");
-		return params[0];
+		return "SUCCESS";
 	}
 
 	@Override
@@ -88,7 +93,9 @@ public class UnzipperTask extends AsyncTask<String, Long, String> {
 
 	@Override
 	protected void onPostExecute(final String result) {
-		this.magThumb.showActions();
+        if ("SUCCESS".equals(result)) {
+		    this.magThumb.showActions();
+        }
 	}
 
 }

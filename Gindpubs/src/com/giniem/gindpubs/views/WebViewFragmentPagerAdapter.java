@@ -6,7 +6,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 
-import com.giniem.gindpubs.BookJson;
+import com.giniem.gindpubs.model.BookJson;
 
 import java.io.File;
 

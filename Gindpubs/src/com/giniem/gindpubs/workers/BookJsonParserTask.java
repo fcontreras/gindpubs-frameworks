@@ -13,7 +13,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.giniem.gindpubs.BookJson;
+import com.giniem.gindpubs.model.BookJson;
 import com.giniem.gindpubs.Configuration;
 import com.giniem.gindpubs.R;
 import com.giniem.gindpubs.views.MagazineThumb;
@@ -61,7 +61,7 @@ public class BookJsonParserTask extends AsyncTask<String, Long, BookJson> {
 			    Log.d(this.getClass().toString(), "Book.json is valid.");
 		    	result = new BookJson();
 		    	result.fromJson(rawJson);
-		    	result.setMagazineName(this.magThumb.getName());
+		    	result.setMagazineName(this.magThumb.getMagazine().getName());
 		    } else {
 			    Log.d(this.getClass().toString(), "Book.json is NOT valid.");
 		    }
