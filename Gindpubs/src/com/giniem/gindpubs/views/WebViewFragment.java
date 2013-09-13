@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebChromeClient;
+import android.webkit.WebSettings;
 import android.widget.FrameLayout;
 
 import com.giniem.gindpubs.R;
@@ -35,6 +36,11 @@ public class WebViewFragment extends Fragment {
 		
 		webView = (CustomWebView) rootView.findViewById(R.id.webpage1);
 		webView.getSettings().setJavaScriptEnabled(true);
+        webView.getSettings().setBuiltInZoomControls(true);
+        webView.getSettings().setSupportZoom(true);
+        webView.getSettings().setDefaultZoom(
+                WebSettings.ZoomDensity.MEDIUM);
+        webView.getSettings().getDefaultZoom();
 		webView.setWebChromeClient(chromeClient);
 		webView.loadUrl(args.getString(ARG_OBJECT));
 
