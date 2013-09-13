@@ -1,4 +1,4 @@
-package com.giniem.gindpubs;
+package com.giniem.gindpubs.model;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

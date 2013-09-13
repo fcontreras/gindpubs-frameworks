@@ -23,6 +23,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
+import com.giniem.gindpubs.model.BookJson;
 import com.giniem.gindpubs.views.CustomWebView;
 import com.giniem.gindpubs.views.CustomWebViewPager;
 import com.giniem.gindpubs.views.WebViewFragment;

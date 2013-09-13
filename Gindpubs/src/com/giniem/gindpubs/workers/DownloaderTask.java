@@ -1,82 +1,123 @@
 package com.giniem.gindpubs.workers;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.URL;
-import java.net.URLConnection;
+import android.app.DownloadManager;
+import android.app.DownloadManager.Query;
 
 import android.content.Context;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
+import android.util.Log;
 
-import com.giniem.gindpubs.Configuration;
-import com.giniem.gindpubs.views.MagazineThumb;
+import com.giniem.gindpubs.client.GindMandator;
+
+import java.io.File;
 
 public class DownloaderTask extends AsyncTask<String, Long, String> {
 
-	private File magazinesDirectory;
+    //The mandator that should be notified after the task is done
+    private GindMandator mandator;
+    //The task id
+    private int taskId;
+
+    private DownloadManager dm;
+    private String downloadUrl;
+    private String fileName;
+    private String fileTitle;
+    private String fileDescription;
+    private String relativeDirPath;
+    private int visibility;
+    Uri downloadedFile;
 	
-	private MagazineThumb magThumb;
-	
-	public DownloaderTask(Context context) {
-		this.magazinesDirectory = Configuration.getDiskDir(context);
+	public DownloaderTask(Context context,
+                          GindMandator mandator,
+                          final int taskId,
+                          final String downloadUrl,
+                          final String fileName,
+                          final String fileTitle,
+                          final String fileDesc,
+                          final String relDirPath,
+                          final int visibility) {
+        this.mandator = mandator;
+        this.taskId = taskId;
+        this.dm = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
+        this.fileName = fileName;
+        this.downloadUrl = downloadUrl;
+        this.fileTitle = fileTitle;
+        this.fileDescription = fileDesc;
+        this.relativeDirPath = relDirPath;
+        this.visibility = visibility;
 	}
-	
-	public DownloaderTask(MagazineThumb thumb) {
-		this(thumb.getContext());
-		this.magThumb = thumb;
-	}
-	
-	@Override
+
+
+    @Override
 	protected String doInBackground(String... params) {
-		try {
-			
-			if (!this.magazinesDirectory.exists()) {
-				this.magazinesDirectory.mkdirs();
-			}
-			
-			URL url = new URL(params[0]);
-			URLConnection connection = url.openConnection();
-			connection.connect();
+        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(downloadUrl));
+        request.setDescription(fileDescription);
+        request.setTitle(fileTitle);
 
-			long fileLength = connection.getContentLength();
-			String outputFilename = this.magazinesDirectory.getPath()
-					+ File.separator + params[1] + ".zip";
+        // in order for this if to run, you must use the android 3.2 to compile your app
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            request.allowScanningByMediaScanner();
+            request.setNotificationVisibility(visibility);
+        }
+        request.setDestinationInExternalPublicDir(relativeDirPath, fileName + ".zip");
+        long downloadId = dm.enqueue(request);
 
-			InputStream input = new BufferedInputStream(url.openStream());
-			OutputStream output = new FileOutputStream(outputFilename);
+        Query query = new DownloadManager.Query();
+        query.setFilterById(downloadId);
 
-			byte buffer[] = new byte[1024];
-			long total = 0;
-			int read;
-			while ((read = input.read(buffer)) != -1) {
-				total += read;
-				publishProgress((long) (total * 100 / fileLength), total, fileLength);
-				output.write(buffer, 0, read);
-			}
+        boolean downloading = true;
+        String result = "";
+        while(downloading) {
+            Cursor c = this.dm.query(query);
+            c.moveToFirst();
+            int status  = c.getInt(c.getColumnIndex(DownloadManager.COLUMN_STATUS));
 
-			output.flush();
-			output.close();
-			input.close();
-			return outputFilename;
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
+            switch (status) {
+                case DownloadManager.STATUS_PAUSED:
+                    //Do nothing
+                    break;
+                case DownloadManager.STATUS_PENDING:
+                    //Do nothing
+                    break;
+                case DownloadManager.STATUS_RUNNING:
+                    long totalBytes = c.getLong(c.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
+                    long bytesSoFar = c.getLong(c.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
+                    long progress = (bytesSoFar * 100 / totalBytes);
+                    Log.d(this.getClass().getName(), "RUNNING Download of " + this.fileName + " progress: " + progress + "%");
+                    publishProgress(progress, bytesSoFar, totalBytes);
+                    break;
+                case DownloadManager.STATUS_SUCCESSFUL:
+                    publishProgress(100L,
+                            c.getLong(c.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)),
+                            c.getLong(c.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)));
+                    downloading = false;
+                    Log.d(this.getClass().getName(), "SUCCESSFULLY Downloaded " + this.fileName );
+                    result = "SUCCESS";
+                    downloadedFile = dm.getUriForDownloadedFile(downloadId);
+                    break;
+                case DownloadManager.STATUS_FAILED:
+                    Log.e(this.getClass().getName(), "ERROR Downloading " + this.fileName );
+                    downloading = false;
+                    break;
+            }
+            c.close();
+        }
+
+        return result;
 	}
 	
 	@Override
 	protected void onProgressUpdate(Long... progress) {
-		if (null != this.magThumb) {
-			this.magThumb.updateProgress(progress[0], progress[1], progress[2]);
-		}
+        mandator.updateProgress(taskId, progress[0], progress[1], progress[2]);
     }
 	
 	@Override
 	protected void onPostExecute(final String result) {
-		this.magThumb.startUnzip();
-	}
+        String filePath = this.relativeDirPath + File.separator + this.fileName;
+        mandator.postExecute(taskId, result, downloadedFile.getPath());
+    }
 
 }
