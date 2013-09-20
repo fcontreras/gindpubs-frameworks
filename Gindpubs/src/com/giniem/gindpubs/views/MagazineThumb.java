@@ -62,7 +62,7 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
                 this,
                 this.MAGAZINE_DOWNLOAD_TASK,
                 this.magazine.getUrl(),
-                this.magazine.getName(),
+                this.magazine.getName() + ".zip",
                 this.magazine.getTitle(),
                 this.magazine.getInfo(),
                 this.dirPath,

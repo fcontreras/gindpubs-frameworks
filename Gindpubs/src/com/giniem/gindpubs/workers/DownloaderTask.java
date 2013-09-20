@@ -62,7 +62,7 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
             request.allowScanningByMediaScanner();
             request.setNotificationVisibility(visibility);
         }
-        request.setDestinationInExternalPublicDir(relativeDirPath, fileName + "");
+        request.setDestinationInExternalPublicDir(relativeDirPath, fileName);
         long downloadId = dm.enqueue(request);
 
         Query query = new DownloadManager.Query();
