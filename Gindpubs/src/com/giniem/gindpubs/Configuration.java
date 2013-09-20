@@ -1,11 +1,11 @@
 package com.giniem.gindpubs;
 
-import java.io.File;
-
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Environment;
+
+import java.io.File;
 
 public class Configuration {
 
@@ -62,6 +62,30 @@ public class Configuration {
 		return new File(appPath + File.separator
 				+ Configuration.MAGAZINES_FILES_DIR);
 	}
+
+    /**
+     * Gets the absolute cache dir for accessing files.
+     * @param context
+     * @return The absolute cache dir, either on external or internal storage.
+     */
+    public static String getAbsoluteCacheDir(Context context) {
+        String cachePath = "";
+
+        if (Environment.MEDIA_MOUNTED.equals(Environment
+                .getExternalStorageState())) {
+
+            File extCacheDir = context.getExternalCacheDir();
+            if (null != extCacheDir) {
+                cachePath = extCacheDir.getPath();
+            } else {
+                cachePath = context.getCacheDir().getPath();
+            }
+        } else {
+            cachePath = context.getCacheDir().getPath();
+        }
+        return cachePath + File.separator
+                + Configuration.CACHE_FILES_DIR;
+    }
 
 
     /**

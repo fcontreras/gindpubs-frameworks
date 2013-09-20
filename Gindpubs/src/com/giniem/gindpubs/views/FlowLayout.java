@@ -36,11 +36,7 @@ public class FlowLayout extends ViewGroup {
 
 	@Override
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-		
-		if (this.mCenterChildren == true) {
-			this.setPadding(0, this.getPaddingTop(), 0, this.getPaddingBottom());
-		}
-		
+
 		int widthSize = MeasureSpec.getSize(widthMeasureSpec) - getPaddingRight();
 		int widthMode = MeasureSpec.getMode(widthMeasureSpec);
 		boolean growHeight = widthMode != MeasureSpec.UNSPECIFIED;
@@ -90,18 +86,12 @@ public class FlowLayout extends ViewGroup {
 			height += currentHeight;
 			width = Math.max(width, currentWidth - spacing);
 		}
-		
-		//this.setBackgroundColor(Color.RED);
-		if (this.mCenterChildren == true) {
-			this.mCenterChildren = false;
-			this.setPadding((widthSize - width) / 2, this.getPaddingTop(), this.getPaddingRight(), this.getPaddingBottom());
-		} else {
-			width += getPaddingRight();
-		}
+
+        width += getPaddingRight();
 		height += getPaddingBottom();
 
 		setMeasuredDimension(resolveSize(width, widthMeasureSpec),
-				resolveSize(height, heightMeasureSpec));
+                resolveSize(height, heightMeasureSpec));
 	}
 
 	@Override

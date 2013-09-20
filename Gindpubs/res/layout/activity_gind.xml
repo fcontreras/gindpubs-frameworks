@@ -21,11 +21,11 @@
 
         <com.giniem.gindpubs.views.FlowLayout
             android:id="@+id/thumbsContainer"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="10dp"
-            custom:verticalSpacing="30dp"
-            custom:centerChildren="true" >
+            android:layout_gravity="center_horizontal"
+            custom:verticalSpacing="30dp" >
 
         </com.giniem.gindpubs.views.FlowLayout>
 

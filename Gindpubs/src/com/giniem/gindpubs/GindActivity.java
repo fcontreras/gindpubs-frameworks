@@ -84,19 +84,22 @@ public class GindActivity extends Activity implements GindMandator {
             }
             Log.d(this.getClass().getName(), "APP_ID: " + this.getString(R.string.app_id) + ", USER_ID: " + userAccount);
 
-            // We get the shelf json asynchronously.
-            DownloaderTask downloadShelf = new DownloaderTask(
-                    this.getApplicationContext(),
-                    this,
-                    this.DOWNLOAD_SHELF_FILE,
-                    getString(R.string.newstand_manifest_url),
-                    this.shelfFileName,
-                    this.shelfFileTitle,
-                    this.shelfFileDescription,
-                    Configuration.getCacheDirectory(this),
-                    this.shelfFileVisibility);
-            downloadShelf.execute();
-
+            if (Configuration.hasInternetConnection(this)) {
+                // We get the shelf json asynchronously.
+                DownloaderTask downloadShelf = new DownloaderTask(
+                        this.getApplicationContext(),
+                        this,
+                        this.DOWNLOAD_SHELF_FILE,
+                        getString(R.string.newstand_manifest_url),
+                        this.shelfFileName,
+                        this.shelfFileTitle,
+                        this.shelfFileDescription,
+                        Configuration.getCacheDirectory(this),
+                        this.shelfFileVisibility);
+                downloadShelf.execute();
+            } else {
+                this.readShelf(Configuration.getAbsoluteCacheDir(this) + this.getString(R.string.shelf));
+            }
 		} catch (Exception e) {
 			e.printStackTrace();
 			Log.e(this.getClass().getName(), "Cannot load configuration.");
@@ -158,13 +161,13 @@ public class GindActivity extends Activity implements GindMandator {
                 if (json.has("size")) size = json.getInt("size");
 
                 Magazine mag = new Magazine();
-                mag.setName(json.getString("name"));
-                mag.setTitle(json.getString("title"));
-                mag.setInfo(json.getString("info"));
+                mag.setName(new String(json.getString("name").getBytes("ISO-8859-1"), "UTF-8"));
+                mag.setTitle(new String(json.getString("title").getBytes("ISO-8859-1"), "UTF-8"));
+                mag.setInfo(new String(json.getString("info").getBytes("ISO-8859-1"), "UTF-8"));
                 mag.setDate(dateString);
                 mag.setSize(size);
-                mag.setCover(json.getString("cover"));
-                mag.setUrl(json.getString("url"));
+                mag.setCover(new String(json.getString("cover").getBytes("ISO-8859-1"), "UTF-8"));
+                mag.setUrl(new String(json.getString("url").getBytes("ISO-8859-1"), "UTF-8"));
 
                 //Starting the ThumbLayout
 				MagazineThumb thumb = new MagazineThumb(this, mag);
@@ -176,6 +179,7 @@ public class GindActivity extends Activity implements GindMandator {
                 //Add layout
 				flowLayout.addView(thumb);
 			}
+            //flowLayout.setPadding(, flowLayout.getPaddingTop(), flowLayout.getPaddingRight(), flowLayout.getPaddingBottom());
 		} catch (Exception e) {
             //TODO: Notify the user about the issue.
 			e.printStackTrace();
@@ -204,6 +208,33 @@ public class GindActivity extends Activity implements GindMandator {
 		return result;
 	}
 
+    private void readShelf(final String path) {
+        try {
+            //Read the shelf file
+            File input = new File(path);
+            FileInputStream in = new FileInputStream(input);
+            byte[] buffer = new byte[1024];
+            StringBuffer rawData = new StringBuffer("");
+
+            while (in.read(buffer) != -1) {
+                rawData.append(new String(buffer));
+            }
+            in.close();
+
+            //Parse the shelf file
+            JSONArray json = new JSONArray(rawData.toString());
+
+            //Create thumbs
+            this.createThumbnails(json);
+        } catch (Exception e) {
+            Log.e(this.getClass().getName(), "Upss, we colapsed.. :( "
+                    + e.getMessage());
+            Toast.makeText(this, "Sorry, we could not read the shelf file :(",
+                    Toast.LENGTH_LONG).show();
+            this.finish();
+        }
+    }
+
     /**
      * Since the only file that is downloaded on this activity is the
      * shelf.json we don't need to show the user any progress right now.
@@ -227,29 +258,7 @@ public class GindActivity extends Activity implements GindMandator {
                 String filePath = params[1];
 
                 if (taskStatus.equals("SUCCESS")) {
-                    try {
-                        //Read the shelf file
-                        File input = new File(filePath);
-                        FileInputStream in = new FileInputStream(input);
-                        byte[] buffer = new byte[1024];
-                        StringBuffer rawData = new StringBuffer("");
-
-                        while (in.read(buffer) != -1) {
-                            rawData.append(new String(buffer));
-                        }
-                        in.close();
-
-                        //Parse the shelf file
-                        JSONArray json = new JSONArray(rawData.toString());
-
-                        //Create thumbs
-                        this.createThumbnails(json);
-                    } catch (Exception e) {
-                        Log.e(this.getClass().getName(), "Upss, we colapsed.. :( "
-                                + e.getMessage());
-                        //TODO: Notify the user about the issue
-                        this.finish();
-                    }
+                    this.readShelf(filePath);
                 }
                 break;
         }
