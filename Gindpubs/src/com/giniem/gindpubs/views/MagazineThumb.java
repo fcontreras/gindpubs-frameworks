@@ -5,6 +5,7 @@ import android.app.DownloadManager;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -40,11 +41,13 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
     private String cachePath;
     private DownloaderTask packDownloader;
     private DownloaderTask thumbDownloader;
+    private UnzipperTask unzipperTask;
 
     private final int THUMB_DOWNLOAD_TASK = 0;
     private final int THUMB_DOWNLOAD_VISIBILITY = DownloadManager.Request.VISIBILITY_HIDDEN;
     private final int MAGAZINE_DOWNLOAD_TASK = 1;
     private final int MAGAZINE_DOWNLOAD_VISIBILITY = DownloadManager.Request.VISIBILITY_VISIBLE;
+    private final int UNZIP_MAGAZINE_TASK = 2;
 
     /**
      * Creates an instance of MagazineThumb to with an activity context.
@@ -62,7 +65,7 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
                 this,
                 this.MAGAZINE_DOWNLOAD_TASK,
                 this.magazine.getUrl(),
-                this.magazine.getName(),
+                this.magazine.getName() + ".zip",
                 this.magazine.getTitle(),
                 this.magazine.getInfo(),
                 this.dirPath,
@@ -76,6 +79,8 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
                 "File to show on the shelf",
                 cachePath,
                 this.THUMB_DOWNLOAD_VISIBILITY);
+        unzipperTask = new UnzipperTask(context, this, UNZIP_MAGAZINE_TASK);
+
         //Logging initialization
         Log.d(this.getClass().getName(), "Magazines relative dir: " + dirPath);
     }
@@ -142,7 +147,7 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
 						.getChildAt(5);
 				progress.setVisibility(View.VISIBLE);
 
-                packDownloader.execute();
+                packDownloader.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,  "");
 			}
 		});
 
@@ -165,8 +170,7 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
 		TextView tvProgress = (TextView) actionsUI.getChildAt(0);
 		tvProgress.setText(R.string.unzipping);
 
-		UnzipperTask unzipper = new UnzipperTask(this);
-		unzipper.execute(filePath, name);
+		unzipperTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, filePath, name);
 	}
 
 	public void showActions() {
@@ -231,6 +235,7 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
         switch (taskId) {
             case MAGAZINE_DOWNLOAD_TASK:
                 if (results[0] == "SUCCESS") {
+                    Log.e("UNZIP>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", results[1]);
                     startUnzip(results[1], this.magazine.getName());
                 }
                 //TODO: See how to handle failures on download
@@ -240,6 +245,10 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
                     this.renderCover(Configuration.getAbsoluteCacheDir(this.getContext()) + File.separator + this.magazine.getName());
                 }
                 break;
+            case UNZIP_MAGAZINE_TASK:
+                if (results[0] == "SUCCESS") {
+                    this.showActions();
+                }
         }
     };
 }

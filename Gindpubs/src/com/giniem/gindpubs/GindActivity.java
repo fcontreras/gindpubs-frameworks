@@ -96,6 +96,7 @@ public class GindActivity extends Activity implements GindMandator {
                         this.shelfFileDescription,
                         Configuration.getCacheDirectory(this),
                         this.shelfFileVisibility);
+                //downloadShelf.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
                 downloadShelf.execute();
             } else {
                 this.readShelf(Configuration.getAbsoluteCacheDir(this) + this.getString(R.string.shelf));

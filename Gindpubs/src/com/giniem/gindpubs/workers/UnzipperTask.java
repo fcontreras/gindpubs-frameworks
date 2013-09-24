@@ -1,5 +1,11 @@
 package com.giniem.gindpubs.workers;
 
+import android.content.Context;
+import android.os.AsyncTask;
+import android.util.Log;
+
+import com.giniem.gindpubs.client.GindMandator;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -9,26 +15,18 @@ import java.io.InputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import android.content.Context;
-import android.os.AsyncTask;
-import android.util.Log;
-
-import com.giniem.gindpubs.Configuration;
-import com.giniem.gindpubs.views.MagazineThumb;
-
 public class UnzipperTask extends AsyncTask<String, Long, String> {
 
-	private File magazinesDirectory;
-	
-	private MagazineThumb magThumb;
+    private Context context;
 
-	public UnzipperTask(Context context) {
-		this.magazinesDirectory = Configuration.getDiskDir(context);
-	}
-	
-	public UnzipperTask(MagazineThumb thumb) {
-		this(thumb.getContext());
-		this.magThumb = thumb;
+    private GindMandator mandator;
+
+    private int taskId;
+
+	public UnzipperTask(Context context, GindMandator mandator, final int taskId) {
+        this.context = context;
+        this.mandator = mandator;
+        this.taskId = taskId;
 	}
 
 	@Override
@@ -39,11 +37,13 @@ public class UnzipperTask extends AsyncTask<String, Long, String> {
 			String zipEntryName;
 			
 			Log.d(this.getClass().toString(),"Started unzip process for file " + params[0]);
-			
+
 			// First we create a directory to hold the unzipped files.
-			String workingDir = this.magazinesDirectory.getPath() + File.separator;
+			String workingDir = params[0].substring(0, params[0].lastIndexOf("/")) + File.separator;
 			File containerDir = new File(workingDir + params[1]);
+
             Log.e(this.getClass().getName(), "Magazine Directory: " + containerDir);
+
 			if (containerDir.mkdirs()) {
                 input = new FileInputStream(params[0]);
 
@@ -87,15 +87,13 @@ public class UnzipperTask extends AsyncTask<String, Long, String> {
 		return "SUCCESS";
 	}
 
-	@Override
-	protected void onProgressUpdate(Long... progress) {
-	}
+    @Override
+    protected void onProgressUpdate(Long... progress) {
+    }
 
-	@Override
-	protected void onPostExecute(final String result) {
-        if ("SUCCESS".equals(result)) {
-		    this.magThumb.showActions();
-        }
-	}
+    @Override
+    protected void onPostExecute(final String result) {
+        mandator.postExecute(taskId, result);
+    }
 
 }
