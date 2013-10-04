@@ -7,9 +7,12 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Environment;
 import android.util.Log;
 
 import com.giniem.gindpubs.client.GindMandator;
+
+import java.io.File;
 
 public class DownloaderTask extends AsyncTask<String, Long, String> {
 
@@ -27,6 +30,7 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
     private int visibility;
     Uri downloadedFile;
     private long downloadId = -1L;
+    private boolean overwrite = true;
 	
 	public DownloaderTask(Context context,
                           GindMandator mandator,
@@ -47,6 +51,14 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
         this.relativeDirPath = relDirPath;
         this.visibility = visibility;
 	}
+
+    public void setOverwrite(final boolean overwrite) {
+        this.overwrite = overwrite;
+    }
+
+    public boolean isOverwrite() {
+        return this.overwrite;
+    }
 
     public boolean isDownloading() {
         boolean result = false;
@@ -75,6 +87,16 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
         }
     }
 
+    private boolean fileExists(final String filepath) {
+        File file = new File(filepath);
+        return file.exists();
+    }
+
+    private boolean deleteFile(final String filepath) {
+        File file = new File(filepath);
+        return file.delete();
+    }
+
     @Override
 	protected String doInBackground(String... params) {
 
@@ -87,6 +109,18 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
             request.allowScanningByMediaScanner();
             request.setNotificationVisibility(visibility);
         }
+
+        if (this.isOverwrite()) {
+
+            String filepath = Environment.getExternalStorageDirectory().getPath() + relativeDirPath + File.separator + fileName;
+            boolean result = this.fileExists(filepath);
+
+            Log.e(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", "Existence of file " + filepath + " is " + result);
+            if (result) {
+                this.deleteFile(filepath);
+            }
+        }
+
         request.setDestinationInExternalPublicDir(relativeDirPath, fileName);
         downloadId = dm.enqueue(request);
 

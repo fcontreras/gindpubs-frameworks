@@ -129,6 +129,7 @@ public class GindActivity extends Activity implements GindMandator {
             }
             Log.d(this.getClass().getName(), "APP_ID: " + this.getString(R.string.app_id) + ", USER_ID: " + userAccount);
 
+            loadingScreen();
             if (Configuration.hasInternetConnection(this)) {
                 // We get the shelf json asynchronously.
                 DownloaderTask downloadShelf = new DownloaderTask(
@@ -144,13 +145,12 @@ public class GindActivity extends Activity implements GindMandator {
                 //downloadShelf.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
                 downloadShelf.execute();
             } else {
-                this.readShelf(Configuration.getAbsoluteCacheDir(this) + this.getString(R.string.shelf));
+                this.readShelf(Configuration.getAbsoluteCacheDir(this) + File.separator + this.getString(R.string.shelf));
             }
 		} catch (Exception e) {
 			e.printStackTrace();
 			Log.e(this.getClass().getName(), "Cannot load configuration.");
 		}
-		loadingScreen();
 	}
 
 	@Override

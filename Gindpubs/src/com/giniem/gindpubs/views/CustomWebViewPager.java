@@ -7,7 +7,7 @@ import android.view.View;
 
 public class CustomWebViewPager extends ViewPager {
 
-	public CustomWebViewPager(Context context) {
+    public CustomWebViewPager(Context context) {
 		super(context);
 	}
 

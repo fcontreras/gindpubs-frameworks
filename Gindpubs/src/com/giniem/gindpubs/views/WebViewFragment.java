@@ -22,7 +22,7 @@ public class WebViewFragment extends Fragment {
     private WebChromeClient.CustomViewCallback customViewCallback;
     private View customView;
     public CustomChromeClient chromeClient = new CustomChromeClient();
-    
+
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {

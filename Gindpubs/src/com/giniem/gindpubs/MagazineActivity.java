@@ -206,7 +206,12 @@ public class MagazineActivity extends FragmentActivity {
 			if (viewIndex.isShown()) {
 				viewIndex.setVisibility(View.GONE);
 			} else {
-				viewIndex.setVisibility(View.VISIBLE);
+
+                WebViewFragment fragment = (WebViewFragment) MagazineActivity.this.webViewPagerAdapter
+                        .instantiateItem(pager, pager.getCurrentItem());
+                if (!fragment.inCustomView()) {
+                    viewIndex.setVisibility(View.VISIBLE);
+                }
 			}
 
 			return true;
