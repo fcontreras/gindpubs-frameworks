@@ -85,6 +85,10 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
         Log.d(this.getClass().getName(), "Magazines relative dir: " + dirPath);
     }
 
+    public DownloaderTask getPackDownloader() {
+        return this.packDownloader;
+    }
+
 	public void init(final Context context, AttributeSet attrs) {
 		setOrientation(LinearLayout.HORIZONTAL);
 		//setGravity(Gravity.CENTER_VERTICAL);
@@ -164,12 +168,11 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
 		});
 	}
 
-	public void startUnzip(String filePath, String name) {
+	public void startUnzip(final String filePath, final String name) {
 		LinearLayout actionsUI = (LinearLayout) (informationLayout)
 				.getChildAt(5);
 		TextView tvProgress = (TextView) actionsUI.getChildAt(0);
 		tvProgress.setText(R.string.unzipping);
-
 		unzipperTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, filePath, name);
 	}
 
@@ -214,6 +217,7 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
         imageView.setImageBitmap(bmp);
     }
 
+    @Override
     public void updateProgress(final int taskId, Long... progress) {
         //Update only when downloading the magazines
         if (taskId == this.MAGAZINE_DOWNLOAD_TASK) {
@@ -229,13 +233,13 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
             Integer intProgress = (int) (long) progress[0];
             progressBar.setProgress(intProgress);
         }
-    };
+    }
 
+    @Override
     public void postExecute(final int taskId, String... results) {
         switch (taskId) {
             case MAGAZINE_DOWNLOAD_TASK:
                 if (results[0] == "SUCCESS") {
-                    Log.e("UNZIP>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", results[1]);
                     startUnzip(results[1], this.magazine.getName());
                 }
                 //TODO: See how to handle failures on download
@@ -250,5 +254,9 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
                     this.showActions();
                 }
         }
-    };
+    }
+
+    public boolean isDownloading() {
+        return this.packDownloader.isDownloading();
+    }
 }

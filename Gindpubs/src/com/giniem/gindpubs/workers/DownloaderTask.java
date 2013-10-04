@@ -2,7 +2,6 @@ package com.giniem.gindpubs.workers;
 
 import android.app.DownloadManager;
 import android.app.DownloadManager.Query;
-
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
@@ -11,8 +10,6 @@ import android.os.Build;
 import android.util.Log;
 
 import com.giniem.gindpubs.client.GindMandator;
-
-import java.io.File;
 
 public class DownloaderTask extends AsyncTask<String, Long, String> {
 
@@ -29,6 +26,7 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
     private String relativeDirPath;
     private int visibility;
     Uri downloadedFile;
+    private long downloadId = -1L;
 	
 	public DownloaderTask(Context context,
                           GindMandator mandator,
@@ -50,9 +48,36 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
         this.visibility = visibility;
 	}
 
+    public boolean isDownloading() {
+        boolean result = false;
+        if (null != this.dm) {
+            Query query = new DownloadManager.Query();
+            query.setFilterById(downloadId);
+            Cursor c = this.dm.query(query);
+            try {
+                if (c.getCount() > 0) {
+                    c.moveToFirst();
+                    int status  = c.getInt(c.getColumnIndex(DownloadManager.COLUMN_STATUS));
+                    result = (status == DownloadManager.STATUS_RUNNING);
+                }
+            } catch (NullPointerException ex) {
+                // Do nothing
+            }
+        }
+
+        return result;
+    }
+
+    public void cancelDownload() {
+        if (null != this.dm) {
+            this.dm.remove(downloadId);
+            this.cancel(true);
+        }
+    }
 
     @Override
 	protected String doInBackground(String... params) {
+
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(downloadUrl));
         request.setDescription(fileDescription);
         request.setTitle(fileTitle);
@@ -63,14 +88,14 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
             request.setNotificationVisibility(visibility);
         }
         request.setDestinationInExternalPublicDir(relativeDirPath, fileName);
-        long downloadId = dm.enqueue(request);
+        downloadId = dm.enqueue(request);
 
         Query query = new DownloadManager.Query();
         query.setFilterById(downloadId);
 
         boolean downloading = true;
         String result = "";
-        while(downloading) {
+        while (downloading) {
             Cursor c = this.dm.query(query);
             c.moveToFirst();
             int status  = c.getInt(c.getColumnIndex(DownloadManager.COLUMN_STATUS));
@@ -115,8 +140,8 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
     }
 	
 	@Override
-	protected void onPostExecute(final String result) {
-        String filePath = this.relativeDirPath + File.separator + this.fileName;
+	protected void onPostExecute(String result) {
+        //String filePath = this.relativeDirPath + File.separator + this.fileName;
         mandator.postExecute(taskId, result, downloadedFile.getPath());
     }
 

@@ -3,7 +3,9 @@ package com.giniem.gindpubs;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.DownloadManager;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Settings.Secure;
@@ -31,6 +33,7 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileInputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
@@ -45,8 +48,50 @@ public class GindActivity extends Activity implements GindMandator {
     private final String shelfFileDescription = "JSON Encoded file with the magazines information";
     private final int shelfFileVisibility = DownloadManager.Request.VISIBILITY_HIDDEN;
 
+    private FlowLayout flowLayout;
+
     //Task to be done by this activity
     private final int DOWNLOAD_SHELF_FILE = 0;
+
+    @Override
+    public void onBackPressed() {
+
+        boolean downloading = false;
+        final ArrayList<Integer> downloadingThumbs = new ArrayList<Integer>();
+        for (int i = 0; i < flowLayout.getChildCount(); i++) {
+            MagazineThumb thumb = (MagazineThumb) flowLayout.getChildAt(i);
+            if (thumb.isDownloading()) {
+                downloadingThumbs.add(i);
+                downloading = true;
+                break;
+            }
+        }
+
+        if (downloading) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder
+                    .setTitle(this.getString(R.string.exit))
+                    .setMessage(this.getString(R.string.closing_app))
+                    .setPositiveButton(this.getString(R.string.yes), new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+
+                            GindActivity.this.terminateDownloads(downloadingThumbs);
+                            GindActivity.super.onBackPressed();
+                        }
+                    })
+                    .setNegativeButton(this.getString(R.string.no), null)
+                    .show();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    private void terminateDownloads(final ArrayList<Integer> downloadingThumbs) {
+        for (Integer id : downloadingThumbs) {
+            MagazineThumb thumb = (MagazineThumb) flowLayout.getChildAt(id);
+            thumb.getPackDownloader().cancelDownload();
+        }
+    }
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -138,7 +183,7 @@ public class GindActivity extends Activity implements GindMandator {
 		try {
 			this.setContentView(R.layout.activity_gind);
 
-			FlowLayout flowLayout = (FlowLayout) findViewById(R.id.thumbsContainer);
+            flowLayout = (FlowLayout) findViewById(R.id.thumbsContainer);
 
 			int length = jsonArray.length();
 			SimpleDateFormat sdfInput = new SimpleDateFormat(
@@ -180,7 +225,6 @@ public class GindActivity extends Activity implements GindMandator {
                 //Add layout
 				flowLayout.addView(thumb);
 			}
-            //flowLayout.setPadding(, flowLayout.getPaddingTop(), flowLayout.getPaddingRight(), flowLayout.getPaddingBottom());
 		} catch (Exception e) {
             //TODO: Notify the user about the issue.
 			e.printStackTrace();

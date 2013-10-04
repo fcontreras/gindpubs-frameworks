@@ -23,28 +23,34 @@ public class UnzipperTask extends AsyncTask<String, Long, String> {
 
     private int taskId;
 
+    private boolean resumed;
+
+    public void setResumed(final boolean _resumed) {
+        this.resumed = _resumed;
+    }
+
 	public UnzipperTask(Context context, GindMandator mandator, final int taskId) {
         this.context = context;
         this.mandator = mandator;
         this.taskId = taskId;
 	}
 
-	@Override
-	protected String doInBackground(String... params) {
-		InputStream input;
-		ZipInputStream zipInput;
-		try {
-			String zipEntryName;
-			
-			Log.d(this.getClass().toString(),"Started unzip process for file " + params[0]);
+    @Override
+    protected String doInBackground(String... params) {
+        InputStream input;
+        ZipInputStream zipInput;
+        try {
+            String zipEntryName;
 
-			// First we create a directory to hold the unzipped files.
-			String workingDir = params[0].substring(0, params[0].lastIndexOf("/")) + File.separator;
-			File containerDir = new File(workingDir + params[1]);
+            Log.d(this.getClass().toString(),"Started unzip process for file " + params[0]);
+
+            // First we create a directory to hold the unzipped files.
+            String workingDir = params[0].substring(0, params[0].lastIndexOf("/")) + File.separator;
+            File containerDir = new File(workingDir + params[1]);
 
             Log.e(this.getClass().getName(), "Magazine Directory: " + containerDir);
 
-			if (containerDir.mkdirs()) {
+            if (containerDir.mkdirs()) {
                 input = new FileInputStream(params[0]);
 
                 workingDir = workingDir + params[1] + File.separator;
@@ -78,12 +84,12 @@ public class UnzipperTask extends AsyncTask<String, Long, String> {
                 //TODO: Notify the user
                 return null;
             }
-		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
-		}
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
 
-		Log.d(this.getClass().toString(), "Unzip process finished successfully.");
+        Log.d(this.getClass().toString(), "Unzip process finished successfully.");
 		return "SUCCESS";
 	}
 
