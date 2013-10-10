@@ -25,6 +25,7 @@ import com.giniem.gindpubs.model.BookJson;
 import com.giniem.gindpubs.model.Magazine;
 import com.giniem.gindpubs.workers.BookJsonParserTask;
 import com.giniem.gindpubs.workers.DownloaderTask;
+import com.giniem.gindpubs.workers.MagazineDeleteTask;
 import com.giniem.gindpubs.workers.UnzipperTask;
 
 import java.io.File;
@@ -48,6 +49,7 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
     private final int MAGAZINE_DOWNLOAD_TASK = 1;
     private final int MAGAZINE_DOWNLOAD_VISIBILITY = DownloadManager.Request.VISIBILITY_VISIBLE;
     private final int UNZIP_MAGAZINE_TASK = 2;
+    private final int MAGAZINE_DELETE_TASK = 3;
 
     /**
      * Creates an instance of MagazineThumb to with an activity context.
@@ -147,17 +149,21 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
 
 				Button button = (Button) v;
 				button.setVisibility(View.GONE);
+
 				LinearLayout progress = (LinearLayout) (informationLayout)
 						.getChildAt(5);
+                TextView tvProgress = (TextView) progress.getChildAt(0);
+                tvProgress.setText(R.string.downloading);
 				progress.setVisibility(View.VISIBLE);
 
                 packDownloader.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,  "");
 			}
 		});
 
-		// Click on the VIEW button.
 		LinearLayout actionsLayout = (LinearLayout) (informationLayout)
 				.getChildAt(6);
+
+        // Click on the VIEW button.
 		Button buttonView = (Button) (actionsLayout.getChildAt(0));
 		buttonView.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
@@ -166,12 +172,28 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
 				parser.execute(magazine.getName());
 			}
 		});
+
+        // Click on the ARCHIVE button.
+        Button buttonArchive = (Button) (actionsLayout.getChildAt(1));
+        buttonArchive.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                LinearLayout downloadingUI = (LinearLayout) (informationLayout)
+                        .getChildAt(5);
+                TextView tvDeleting = (TextView) downloadingUI.getChildAt(0);
+                tvDeleting.setText(R.string.deleting);
+                tvDeleting.setVisibility(View.VISIBLE);
+
+                MagazineDeleteTask deleter = new MagazineDeleteTask(
+                        MagazineThumb.this.getContext(), MagazineThumb.this, MAGAZINE_DELETE_TASK);
+                deleter.execute(magazine.getName());
+            }
+        });
 	}
 
 	public void startUnzip(final String filePath, final String name) {
-		LinearLayout actionsUI = (LinearLayout) (informationLayout)
+		LinearLayout downloadingUI = (LinearLayout) (informationLayout)
 				.getChildAt(5);
-		TextView tvProgress = (TextView) actionsUI.getChildAt(0);
+		TextView tvProgress = (TextView) downloadingUI.getChildAt(0);
 		tvProgress.setText(R.string.unzipping);
 		unzipperTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, filePath, name);
 	}
@@ -189,6 +211,20 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
 				.getChildAt(6);
 		actionsUI.setVisibility(View.VISIBLE);
 	}
+
+    public void resetActions() {
+        LinearLayout actionsUI = (LinearLayout) (informationLayout)
+                .getChildAt(6);
+        actionsUI.setVisibility(View.GONE);
+
+        LinearLayout downloadingUI = (LinearLayout) (informationLayout)
+                .getChildAt(5);
+        downloadingUI.setVisibility(View.GONE);
+
+        Button buttonDownload = (Button) (informationLayout)
+                .getChildAt(4);
+        buttonDownload.setVisibility(View.VISIBLE);
+    }
 
 	public void setBookJson(BookJson bookJson) {
 		this.book = bookJson;
@@ -253,6 +289,12 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
                 if (results[0] == "SUCCESS") {
                     this.showActions();
                 }
+                break;
+            case MAGAZINE_DELETE_TASK:
+                if (results[0] == "SUCCESS") {
+                    this.resetActions();
+                }
+                break;
         }
     }
 
