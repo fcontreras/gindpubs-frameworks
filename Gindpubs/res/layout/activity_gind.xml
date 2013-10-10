@@ -13,22 +13,45 @@
         android:layout_weight="1"
         android:src="@drawable/header" />
 
-    <ScrollView
-        android:id="@+id/scrollView1"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="3" >
+        android:layout_weight="3"
+        android:orientation="vertical"
+        tools:context=".GindActivity" >
 
-        <com.giniem.gindpubs.views.FlowLayout
-            android:id="@+id/thumbsContainer"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="10dp"
-            android:layout_gravity="center_horizontal"
-            custom:verticalSpacing="30dp" >
+        <FrameLayout
+            android:id="@+id/customViewContainer"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="visible">
 
-        </com.giniem.gindpubs.views.FlowLayout>
+            <WebView
+                android:id="@+id/backgroundWebView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent"/>
 
-    </ScrollView>
+        </FrameLayout>
+
+        <ScrollView
+            android:id="@+id/scrollView1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/transparent">
+
+            <com.giniem.gindpubs.views.FlowLayout
+                android:id="@+id/thumbsContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="10dp"
+                android:layout_gravity="center_horizontal"
+                custom:verticalSpacing="30dp" >
+            </com.giniem.gindpubs.views.FlowLayout>
+        </ScrollView>
+
+    </FrameLayout>
+
+
 
 </LinearLayout>

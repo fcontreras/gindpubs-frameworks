@@ -7,6 +7,7 @@ import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.provider.Settings.Secure;
 import android.util.Log;
@@ -17,6 +18,7 @@ import android.view.WindowManager;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.Toast;
 
 import com.giniem.gindpubs.client.GindMandator;
@@ -160,10 +162,26 @@ public class GindActivity extends Activity implements GindMandator {
 		return true;
 	}
 
-	public void loadingScreen() {
+    private void loadBackground() {
+        WebView webview = (WebView) findViewById(R.id.backgroundWebView);
+        webview.getSettings().setJavaScriptEnabled(true);
+        webview.setBackgroundColor(Color.TRANSPARENT);
+        webview.setWebViewClient(new WebViewClient() {
+
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                view.loadUrl(url);
+                return true;
+            }
+        });
+        webview.loadUrl(getString(R.string.backgroundUrl));
+    }
+
+	private void loadingScreen() {
 		setContentView(R.layout.loading);
 		WebView webview = (WebView) findViewById(R.id.loadingWebView);
-		webview.getSettings().setUseWideViewPort(true);
+        webview.getSettings().setJavaScriptEnabled(true);
+        webview.setBackgroundColor(Color.TRANSPARENT);
 		webview.setWebViewClient(new WebViewClient() {
 
 			@Override
@@ -179,9 +197,10 @@ public class GindActivity extends Activity implements GindMandator {
 		Log.i(this.getClass().getName(),
 				"Shelf json contains " + jsonArray.length() + " elements.");
 
-		JSONObject json = null;
+		JSONObject json;
 		try {
 			this.setContentView(R.layout.activity_gind);
+            loadBackground();
 
             flowLayout = (FlowLayout) findViewById(R.id.thumbsContainer);
 
