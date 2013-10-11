@@ -225,13 +225,13 @@ public class GindActivity extends Activity implements GindMandator {
                 if (json.has("size")) size = json.getInt("size");
 
                 Magazine mag = new Magazine();
-                mag.setName(new String(json.getString("name").getBytes("ISO-8859-1"), "UTF-8"));
-                mag.setTitle(new String(json.getString("title").getBytes("ISO-8859-1"), "UTF-8"));
-                mag.setInfo(new String(json.getString("info").getBytes("ISO-8859-1"), "UTF-8"));
+                mag.setName(new String(json.getString("name").getBytes("UTF-8"), "UTF-8"));
+                mag.setTitle(new String(json.getString("title").getBytes("UTF-8"), "UTF-8"));
+                mag.setInfo(new String(json.getString("info").getBytes("UTF-8"), "UTF-8"));
                 mag.setDate(dateString);
                 mag.setSize(size);
-                mag.setCover(new String(json.getString("cover").getBytes("ISO-8859-1"), "UTF-8"));
-                mag.setUrl(new String(json.getString("url").getBytes("ISO-8859-1"), "UTF-8"));
+                mag.setCover(new String(json.getString("cover").getBytes("UTF-8"), "UTF-8"));
+                mag.setUrl(new String(json.getString("url").getBytes("UTF-8"), "UTF-8"));
 
                 //Starting the ThumbLayout
 				MagazineThumb thumb = new MagazineThumb(this, mag);
