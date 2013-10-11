@@ -33,6 +33,8 @@ import java.io.File;
 
 public class MagazineActivity extends FragmentActivity {
 
+    private boolean doubleTap = false;
+
 	private GestureDetectorCompat gestureDetector;
 	private WebViewFragmentPagerAdapter webViewPagerAdapter;
 	private CustomWebViewPager pager;
@@ -178,17 +180,29 @@ public class MagazineActivity extends FragmentActivity {
 		// Intercept the touch events.
 		this.gestureDetector.onTouchEvent(event);
 
-		// We call the superclass implementation for the touch
-		// events to continue along children.
-		return super.dispatchTouchEvent(event);
+        if (doubleTap) {
+            //No need to pass double tap to children
+            doubleTap = false;
+        } else {
+            // We call the superclass implementation for the touch
+            // events to continue along children.
+            return super.dispatchTouchEvent(event);
+        }
+        return true;
 	}
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		this.gestureDetector.onTouchEvent(event);
 
-		// We call the superclass implementation.
-		return super.onTouchEvent(event);
+        if (doubleTap) {
+            //No need to pass double tap to children
+            doubleTap = false;
+        } else {
+            // We call the superclass implementation.
+            return super.onTouchEvent(event);
+        }
+        return true;
 	}
 
 	/**
@@ -202,7 +216,12 @@ public class MagazineActivity extends FragmentActivity {
 
 		@Override
 		public boolean onDoubleTap(MotionEvent event) {
+            doubleTap = true;
 			CustomWebView viewIndex = (CustomWebView) findViewById(R.id.webViewIndex);
+
+            //Disable Index Zoom
+            viewIndex.getSettings().setSupportZoom(false);
+
 			if (viewIndex.isShown()) {
 				viewIndex.setVisibility(View.GONE);
 			} else {
