@@ -35,12 +35,18 @@ public class WebViewFragment extends Fragment {
 		customViewContainer = (FrameLayout) this.getActivity().findViewById(R.id.customViewContainer);
 		
 		webView = (CustomWebView) rootView.findViewById(R.id.webpage1);
+
+        //Enable javascript
 		webView.getSettings().setJavaScriptEnabled(true);
+        //Add zoom controls
         webView.getSettings().setBuiltInZoomControls(true);
+        //Set zoom enabled/disabled
         webView.getSettings().setSupportZoom(true);
-        webView.getSettings().setDefaultZoom(
-                WebSettings.ZoomDensity.MEDIUM);
-        webView.getSettings().getDefaultZoom();
+        //Support zoom like normal browsers
+        webView.getSettings().setUseWideViewPort(true);
+        //Load the page on the maximum zoom out available.
+        webView.getSettings().setLoadWithOverviewMode(true);
+
 		webView.setWebChromeClient(chromeClient);
 		webView.loadUrl(args.getString(ARG_OBJECT));
 
