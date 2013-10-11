@@ -150,10 +150,10 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
             //Hide the size if not set
             findViewById(R.id.txtSize).setVisibility(View.GONE);
         } else {
+            //Calculating size in MB
+            this.magazine.setSizeMB(this.magazine.getSize() / 1048576);
             ((TextView) findViewById(R.id.txtSize)).setText(this.magazine.getSizeMB() + " MB");
         }
-        //Calculating size in MB
-        this.magazine.setSizeMB(this.magazine.getSize() / 1048576);
         ((TextView) findViewById(R.id.txtProgress)).setText(
                 "0 MB / " + this.magazine.getSizeMB() + " MB");
 
