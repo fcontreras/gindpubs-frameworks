@@ -45,78 +45,10 @@
     <string name="unzipping">Now Unzipping</string>
     <string name="deleting">Now Deleting</string>
     <string name="thumbImageDescription">Thumbnail</string>
+    <string name="confirmation">Confirmation</string>
+    <string name="archiveConfirm">Are you sure you want to archive this issue?</string>
 
-    <!-- Thumbnails styles -->
-
-    <dimen name="thumbnail_width">250dp</dimen>
-    <dimen name="thumbnail_height">120dp</dimen>
-
-    <!-- Cover -->
-    <dimen name="cover_width">90dp</dimen>
-    <dimen name="cover_height">120dp</dimen>
-
-    <!-- Title -->
-    <string name="title_font">Helvetica-Bold</string>
-
-    <dimen name="title_font_size">13sp</dimen>
-
-    <color name="title_font_color">#F7F6F9</color>
-
-    <!-- Info -->
-    <string name="info_font">Helvetica</string>
-
-    <dimen name="info_font_size">11sp</dimen>
-
-    <color name="info_font_color">#DCDBDD</color>
-
-    <!-- Date -->
-    <string name="date_font">Helvetica</string>
-
-    <dimen name="date_font_size">13sp</dimen>
-
-    <color name="date_font_color">#24B2DC</color>
-
-    <!-- Size -->
-    <string name="size_font">Helvetica-Bold</string>
-
-    <dimen name="size_font_size">11sp</dimen>
-
-    <color name="size_font_color">#FFFFFF</color>
-
-    <!-- Download -->
-    <string name="download_font">Helvetica-Bold</string>
-
-    <dimen name="download_font_size">12sp</dimen>
-
-    <color name="download_font_color">#FFFFFF</color>
-    <color name="download_font_background_color">#504F50</color>
-
-    <!-- Read -->
-    <string name="read_font">Helvetica-Bold</string>
-
-    <dimen name="read_font_size">11sp</dimen>
-
-    <color name="read_font_color">#FFFFFF</color>
-    <color name="read_font_background_color">#504F50</color>
-
-    <!-- Archive -->
-    <string name="archive_font">Helvetica-Bold</string>
-
-    <dimen name="archive_font_size">11sp</dimen>
-
-    <color name="archive_font_color">#504F50</color>
-    <color name="archive_font_background_color">#FFFFFF</color>
-
-    <!-- Progress -->
-    <string name="progress_font">Helvetica</string>
-
-    <dimen name="progress_font_size">11sp</dimen>
-
-    <color name="progress_font_color">#A5A4A6</color>
-    <color name="progress_bar_color">#B72529</color>
-    <color name="progress_bar_background">#000000</color>
 
     <string name="title_activity_video">VideoActivity</string>
-    <string name="hello_world">Hello world!</string>
 
 </resources>

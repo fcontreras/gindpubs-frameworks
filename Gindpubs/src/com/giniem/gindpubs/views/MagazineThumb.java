@@ -1,8 +1,9 @@
 package com.giniem.gindpubs.views;
 
-import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
@@ -10,7 +11,6 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -33,16 +33,43 @@ import java.io.File;
 
 public class MagazineThumb extends LinearLayout implements GindMandator {
 
-    private Magazine magazine;
-	private BookJson book;
-	private LinearLayout parent;
-    private LinearLayout informationLayout;
-    private DownloadManager dm;
+    /**
+     * The path to the application files, in the internal memory or SD card.
+     */
     private String dirPath;
+    /**
+     * The path to the application cache folder.
+     */
     private String cachePath;
+    /**
+     * magazine represents the model of the object read from the list of issues json file
+     * to render into the layout.
+     * It is passed as param with building the layout so it should have all the
+     * required values.
+     */
+    private Magazine magazine;
+    /**
+     * book is the model object read from the book.json file that comes into the hpub package.
+     * It should have all required properties to load the issue.
+     */
+    private BookJson book;
+    /**
+     * packDownloader represents a tasks that should be used to download the issue package
+     * when necessary.
+     */
     private DownloaderTask packDownloader;
+    /**
+     * thumbDownloader is a download task to get the cover files of the issue.
+     */
     private DownloaderTask thumbDownloader;
+    /**
+     * unzipper task should be used to unzip the hpub to be able to render it into a WebView.
+     */
     private UnzipperTask unzipperTask;
+    /**
+     * Issue readable state
+     */
+    private boolean readable = false;
 
     private final int THUMB_DOWNLOAD_TASK = 0;
     private final int THUMB_DOWNLOAD_VISIBILITY = DownloadManager.Request.VISIBILITY_HIDDEN;
@@ -57,12 +84,14 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
      */
 	public MagazineThumb(Context context, Magazine mag) {
 		super(context);
-
-        //Constructor initialization
-        dm = (DownloadManager) context.getSystemService(Activity.DOWNLOAD_SERVICE);
+        //Paths to the application files
         dirPath = Configuration.getApplicationRelativeMagazinesPath(context);
         cachePath = Configuration.getCacheDirectory(context);
+
+        //Set the magazine model to the thumb instance.
         this.magazine = mag;
+
+        //Package downloader task initialization.
         packDownloader = new DownloaderTask(context,
                 this,
                 this.MAGAZINE_DOWNLOAD_TASK,
@@ -72,6 +101,8 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
                 this.magazine.getInfo(),
                 this.dirPath,
                 this.MAGAZINE_DOWNLOAD_VISIBILITY);
+
+        //Thumbnail downloader task initialization.
         thumbDownloader = new DownloaderTask(context,
                 this,
                 this.THUMB_DOWNLOAD_TASK,
@@ -81,224 +112,281 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
                 "File to show on the shelf",
                 cachePath,
                 this.THUMB_DOWNLOAD_VISIBILITY);
+
+        //Unzipper task initialization
         unzipperTask = new UnzipperTask(context, this, UNZIP_MAGAZINE_TASK);
 
         //Logging initialization
         Log.d(this.getClass().getName(), "Magazines relative dir: " + dirPath);
     }
 
-    public DownloaderTask getPackDownloader() {
-        return this.packDownloader;
-    }
-
+    /**
+     * Initialize the view
+     * @param context Application Context
+     * @param attrs Attributes to pass to the view.
+     */
 	public void init(final Context context, AttributeSet attrs) {
 		setOrientation(LinearLayout.HORIZONTAL);
-		//setGravity(Gravity.CENTER_VERTICAL);
 
+        //Creating the view from the XML
 		LayoutInflater inflater = (LayoutInflater) context
 				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		inflater.inflate(R.layout.magazine_thumb_options, this, true);
 
-		parent = ((LinearLayout)((LinearLayout) getChildAt(0)).getChildAt(0));
-        informationLayout = (LinearLayout) parent.getChildAt(1);
-
         // Download the cover if not exists.
-        if (!(new File(Configuration.getAbsoluteCacheDir(this.getContext()) + File.separator + this.magazine.getName())).exists()) {
+        if (!(new File(Configuration.getAbsoluteCacheDir(this.getContext())
+                + File.separator + this.magazine.getName())).exists()) {
             thumbDownloader.execute();
         } else {
-            this.renderCover(Configuration.getAbsoluteCacheDir(this.getContext()) + File.separator + this.magazine.getName());
+            this.renderCover(Configuration.getAbsoluteCacheDir(
+                    this.getContext()) + File.separator + this.magazine.getName());
         }
 
+        //Set texts and values into the layout
+		((TextView) findViewById(R.id.txtTitle)).setText(this.magazine.getTitle());
+        ((TextView) findViewById(R.id.txtInfo)).setText(this.magazine.getInfo());
+		((TextView) findViewById(R.id.txtDate)).setText(this.magazine.getDate());
+        if (this.magazine.getSize() == 0) {
+            //Hide the size if not set
+            findViewById(R.id.txtSize).setVisibility(View.GONE);
+        } else {
+            ((TextView) findViewById(R.id.txtSize)).setText(this.magazine.getSizeMB() + " MB");
+        }
         //Calculating size in MB
-		this.magazine.setSizeMB(this.magazine.getSize() / 1048576);
+        this.magazine.setSizeMB(this.magazine.getSize() / 1048576);
+        ((TextView) findViewById(R.id.txtProgress)).setText(
+                "0 MB / " + this.magazine.getSizeMB() + " MB");
 
-		TextView tvTitle = (TextView) (informationLayout)
-				.getChildAt(0);
-		tvTitle.setEllipsize(null);
-		tvTitle.setSingleLine(false);
-		tvTitle.setText(this.magazine.getTitle());
+        //Click on the thumbs image
+        findViewById(R.id.imgCover).setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if (readable) {
+                    readIssue();
+                } else {
+                    startPackageDownload();
+                }
+            }
+        });
 
-		TextView tvInfo = (TextView) (informationLayout)
-				.getChildAt(1);
-		tvInfo.setEllipsize(null);
-		tvInfo.setSingleLine(false);
-		tvInfo.setText(this.magazine.getInfo());
+		//Click on download button
+        findViewById(R.id.btnDownload).setOnClickListener(new OnClickListener() {
+            public void onClick(View v) {
+                startPackageDownload();
+            }
+        });
 
-		TextView tvDate = (TextView) (informationLayout)
-				.getChildAt(2);
-		tvDate.setEllipsize(null);
-		tvDate.setSingleLine(false);
-		tvDate.setText(this.magazine.getDate());
-
- 		TextView tvSize = (TextView) (informationLayout)
-				.getChildAt(3);
-		tvSize.setEllipsize(null);
-		tvSize.setSingleLine(false);
-		tvSize.setText(this.magazine.getSizeMB() + " MB");
-
-		LinearLayout downloadLayout = (LinearLayout) (informationLayout)
-				.getChildAt(5);
-		TextView tvProgress = (TextView) downloadLayout.getChildAt(0);
-		tvProgress.setText("0 MB / " + this.magazine.getSizeMB() + " MB");
-
-		// Click on the DOWNLOAD button.
-		Button buttonDownload = (Button) (informationLayout)
-				.getChildAt(4);
-		buttonDownload.setOnClickListener(new View.OnClickListener() {
+        // Click on the Read button.
+		findViewById(R.id.btnRead).setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
-
-				Button button = (Button) v;
-				button.setVisibility(View.GONE);
-
-				LinearLayout progress = (LinearLayout) (informationLayout)
-						.getChildAt(5);
-                TextView tvProgress = (TextView) progress.getChildAt(0);
-                tvProgress.setText(R.string.downloading);
-				progress.setVisibility(View.VISIBLE);
-
-                packDownloader.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,  "");
-			}
-		});
-
-		LinearLayout actionsLayout = (LinearLayout) (informationLayout)
-				.getChildAt(6);
-
-        // Click on the VIEW button.
-		Button buttonView = (Button) (actionsLayout.getChildAt(0));
-		buttonView.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View v) {
-				BookJsonParserTask parser = new BookJsonParserTask(
-						MagazineThumb.this);
-				parser.execute(magazine.getName());
+                readIssue();
 			}
 		});
 
         // Click on the ARCHIVE button.
-        Button buttonArchive = (Button) (actionsLayout.getChildAt(1));
-        buttonArchive.setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.btnArchive).setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                LinearLayout downloadingUI = (LinearLayout) (informationLayout)
-                        .getChildAt(5);
-                TextView tvDeleting = (TextView) downloadingUI.getChildAt(0);
-                tvDeleting.setText(R.string.deleting);
-                tvDeleting.setVisibility(View.VISIBLE);
-
-                MagazineDeleteTask deleter = new MagazineDeleteTask(
-                        MagazineThumb.this.getContext(), MagazineThumb.this, MAGAZINE_DELETE_TASK);
-                deleter.execute(magazine.getName());
+                deleteIssue();
             }
         });
 	}
 
-	public void startUnzip(final String filePath, final String name) {
-		LinearLayout downloadingUI = (LinearLayout) (informationLayout)
-				.getChildAt(5);
-		TextView tvProgress = (TextView) downloadingUI.getChildAt(0);
-		tvProgress.setText(R.string.unzipping);
-		unzipperTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, filePath, name);
-	}
-
-	public void showActions() {
-		Button buttonDownload = (Button) (informationLayout)
-				.getChildAt(4);
-			buttonDownload.setVisibility(View.GONE);
-		
-		LinearLayout downloadingUI = (LinearLayout) (informationLayout)
-				.getChildAt(5);
-		downloadingUI.setVisibility(View.GONE);
-
-		LinearLayout actionsUI = (LinearLayout) (informationLayout)
-				.getChildAt(6);
-		actionsUI.setVisibility(View.VISIBLE);
-	}
-
-    public void resetActions() {
-        LinearLayout actionsUI = (LinearLayout) (informationLayout)
-                .getChildAt(6);
-        actionsUI.setVisibility(View.GONE);
-
-        LinearLayout downloadingUI = (LinearLayout) (informationLayout)
-                .getChildAt(5);
-        downloadingUI.setVisibility(View.GONE);
-
-        Button buttonDownload = (Button) (informationLayout)
-                .getChildAt(4);
-        buttonDownload.setVisibility(View.VISIBLE);
+    /**
+     * This method should return the package downloader task to be able to cancel it.
+     * @return DownloaderTask
+     */
+    public DownloaderTask getPackDownloader() {
+        return this.packDownloader;
     }
 
-	public void setBookJson(BookJson bookJson) {
-		this.book = bookJson;
+    /**
+     * Updates the UI to allow the user read/archive the issue.
+     */
+    public void enableReadArchiveActions() {
+        findViewById(R.id.btnDownload).setVisibility(View.GONE);
+        findViewById(R.id.btnArchive).setVisibility(View.VISIBLE);
+        findViewById(R.id.btnRead).setVisibility(View.VISIBLE);
 
-		if (null != this.book) {
-			GindActivity activity = (GindActivity) this.getContext();
-			activity.viewMagazine(this.book);
+        //Issue becomes readable
+        readable = true;
+    }
 
-		} else {
-			Toast.makeText(this.getContext(), "Not valid book.json found!",
-					Toast.LENGTH_LONG).show();
-		}
-	}
+    public void setBookJson(BookJson bookJson) {
+        this.book = bookJson;
+
+        if (null != this.book) {
+            GindActivity activity = (GindActivity) this.getContext();
+            activity.viewMagazine(this.book);
+
+        } else {
+            Toast.makeText(this.getContext(), "Not valid book.json found!",
+                    Toast.LENGTH_LONG).show();
+        }
+    }
 
     public Magazine getMagazine() {
         return magazine;
     }
 
-    public void setMagazine(Magazine magazine) {
-        this.magazine = magazine;
+    /**
+     * This should let other instances know if this Magazine Thumb instance is already
+     * downloading a package.
+     * @return boolean true if downloading false, otherwise.
+     */
+    public boolean isDownloading() {
+        return this.packDownloader.isDownloading();
     }
 
-    private void renderCover(final String path) {
-        ImageView imageView = (ImageView) parent.getChildAt(0);
-        Bitmap bmp = BitmapFactory.decodeFile(path);
-        imageView.setImageBitmap(bmp);
+    /**
+     * Deletes and issue from the user device.
+     */
+    private void deleteIssue() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this.getContext());
+        builder.setTitle(R.string.confirmation)
+                .setMessage(R.string.archiveConfirm)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        //Setting text and showing progress text
+                        ((TextView)findViewById(R.id.txtProgress)).setText(R.string.deleting);
+                        findViewById(R.id.txtProgress).setVisibility(View.VISIBLE);
+
+                        MagazineDeleteTask deleter = new MagazineDeleteTask(
+                                MagazineThumb.this.getContext(), MagazineThumb.this, MAGAZINE_DELETE_TASK);
+                        deleter.execute(magazine.getName());
+                    }
+                })
+                .setNegativeButton(R.string.no, null)
+                .show();
     }
 
-    @Override
-    public void updateProgress(final int taskId, Long... progress) {
-        //Update only when downloading the magazines
-        if (taskId == this.MAGAZINE_DOWNLOAD_TASK) {
-            LinearLayout progressLayout = (LinearLayout) (informationLayout)
-                    .getChildAt(5);
+    /**
+     * Change the views to start reading the issue.
+     */
+    private void readIssue() {
+        BookJsonParserTask parser = new BookJsonParserTask(
+                MagazineThumb.this);
+        parser.execute(magazine.getName());
+    }
 
-            long fileProgress = progress[1] / 1048576;
-            long length = progress[2] / 1048576;
-            TextView tvProgress = (TextView) progressLayout.getChildAt(0);
-            tvProgress.setText(String.valueOf(fileProgress) + " MB / " + length
-                    + " MB");
-            ProgressBar progressBar = (ProgressBar) progressLayout.getChildAt(1);
-            Integer intProgress = (int) (long) progress[0];
-            progressBar.setProgress(intProgress);
+    /**
+     * Starts the download of an issue, hides the download controls and shows the progress controls.
+     */
+    private void startPackageDownload() {
+        //If the issue is not downloading we start the download, otherwise, do nothing.
+        if (!isDownloading()) {
+            //Hide download button
+            findViewById(R.id.btnDownload).setVisibility(View.GONE);
+
+            //Show progressbar and progress text
+            findViewById(R.id.txtProgress).setVisibility(View.VISIBLE);
+            ((TextView) findViewById(R.id.txtProgress)).setText(R.string.downloading);
+            findViewById(R.id.prgDownload).setVisibility(View.VISIBLE);
+
+            packDownloader.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
         }
     }
 
+    /**
+     * Start the unzipping task for an issue. Also handles the controls update.
+     * @param filePath the path where the file to unzip is located.
+     * @param name the name of the file to unzip.
+     */
+	private void startUnzip(final String filePath, final String name) {
+        //Shows and set the text of progress
+        ((TextView)findViewById(R.id.txtProgress)).setText(R.string.unzipping);
+        findViewById(R.id.txtProgress).setVisibility(View.VISIBLE);
+
+        //Starts the unzipping task
+		unzipperTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, filePath, name);
+	}
+
+    /**
+     * Sets an image file as the cover of this instance of an issue.
+     * @param path the path of the file to render.
+     */
+    private void renderCover(final String path) {
+        Bitmap bmp = BitmapFactory.decodeFile(path);
+        ((ImageView) findViewById(R.id.imgCover)).setImageBitmap(bmp);
+    }
+
+    /**
+     * Updates the UI to let the user download the issue.
+     */
+    private void enableDownloadAction() {
+        findViewById(R.id.btnDownload).setVisibility(View.VISIBLE);
+        findViewById(R.id.btnArchive).setVisibility(View.GONE);
+        findViewById(R.id.btnRead).setVisibility(View.GONE);
+
+        //Issue become non readable
+        readable = false;
+    }
+
+    /**
+     * As an instance of GindMandator, this class has to implement updateProgress
+     * to update the UI when some of the task change it status.
+     *
+     * @param taskId the id of the task that changed status.
+     * @param progress the progress indicators.
+     */
+    @Override
+    public void updateProgress(final int taskId, Long... progress) {
+        //Update the progress bar only when downloading the magazines
+        if (taskId == this.MAGAZINE_DOWNLOAD_TASK) {
+            //Calculating progress
+            long fileProgress = progress[1] / 1048576;
+            long length = progress[2] / 1048576;
+            Integer intProgress = (int) (long) progress[0];
+
+            //Updating UI
+            ((TextView)findViewById(R.id.txtProgress))
+                    .setText(String.valueOf(fileProgress) + " MB / " + length
+                            + " MB");
+            ((ProgressBar)findViewById(R.id.prgDownload)).setProgress(intProgress);
+        }
+    }
+
+    /**
+     * As an instance of GindMandator, this class should implement a method postExecute
+     * to be executed when one of the tasks is done.
+     *
+     * @param taskId the id of the task that ended.
+     * @param results the results values.
+     */
     @Override
     public void postExecute(final int taskId, String... results) {
+        //Hide progress
+        findViewById(R.id.txtProgress).setVisibility(View.GONE);
+        findViewById(R.id.prgDownload).setVisibility(View.GONE);
+
+        //TODO: Handle failures.
         switch (taskId) {
             case MAGAZINE_DOWNLOAD_TASK:
+                //When the download task ended successfully we will start unzipping the file.
                 if (results[0] == "SUCCESS") {
                     startUnzip(results[1], this.magazine.getName());
                 }
-                //TODO: See how to handle failures on download
                 break;
             case THUMB_DOWNLOAD_TASK:
+                //If the thumbnail download ended successfully we will render the cover.
                 if (results[0] == "SUCCESS") {
-                    this.renderCover(Configuration.getAbsoluteCacheDir(this.getContext()) + File.separator + this.magazine.getName());
+                    this.renderCover(Configuration.getAbsoluteCacheDir(
+                            this.getContext()) + File.separator + this.magazine.getName());
                 }
                 break;
             case UNZIP_MAGAZINE_TASK:
+                //If the Unzip tasks ended successfully we will update the UI to let the user
+                //start reading the issue.
                 if (results[0] == "SUCCESS") {
-                    this.showActions();
+                    this.enableReadArchiveActions();
                 }
                 break;
             case MAGAZINE_DELETE_TASK:
+                //If the issue files were deleted successfully the UI will be updated to let
+                //the user download the issue again.
                 if (results[0] == "SUCCESS") {
-                    this.resetActions();
+                    this.enableDownloadAction();
                 }
                 break;
         }
-    }
-
-    public boolean isDownloading() {
-        return this.packDownloader.isDownloading();
     }
 }

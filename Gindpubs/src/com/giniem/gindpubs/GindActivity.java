@@ -18,7 +18,6 @@ import android.view.WindowManager;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.Toast;
 
 import com.giniem.gindpubs.client.GindMandator;
@@ -238,7 +237,7 @@ public class GindActivity extends Activity implements GindMandator {
 				MagazineThumb thumb = new MagazineThumb(this, mag);
                 thumb.init(this, null);
                 if(this.magazineExists(mag.getName())) {
-                    thumb.showActions();
+                    thumb.enableReadArchiveActions();
                 }
 
                 //Add layout

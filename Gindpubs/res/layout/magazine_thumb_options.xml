@@ -2,153 +2,156 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal" >
+    android:orientation="horizontal">
 
     <LinearLayout
-            android:layout_width="@dimen/thumbnail_width"
-            android:layout_height="@dimen/thumbnail_height"
-            android:orientation="horizontal"
-            android:layout_margin="5dp" >
+        android:layout_width="320dp"
+        android:layout_height="140dp"
+        android:orientation="horizontal"
+        android:layout_margin="5dp">
 
         <ImageView
-                android:id="@+id/imageView1"
-                android:layout_width="@dimen/cover_width"
-                android:layout_height="@dimen/cover_height"
-                android:contentDescription="@string/thumbImageDescription"
-                android:scaleType="fitXY"/>
+            android:id="@+id/imgCover"
+            android:layout_width="100dp"
+            android:layout_height="140dp"
+            android:contentDescription="@string/thumbImageDescription"
+            android:scaleType="fitXY" />
 
         <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/txtTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
-                android:orientation="vertical" >
+                android:ellipsize="end"
+                android:singleLine="true"
+                android:text="Title"
+
+                android:fontFamily="Helvetica-Bold"
+                android:textColor="#F7F6F9"
+                android:textSize="15sp" />
 
             <TextView
-                    android:id="@+id/textView1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="none"
-                    android:fontFamily="@string/title_font"
-                    android:singleLine="false"
-                    android:text="Title"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="@color/title_font_color"
-                    android:textSize="@dimen/title_font_size" />
+                android:id="@+id/txtInfo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:lines="2"
+                android:text="Info"
+
+                android:fontFamily="Helvetica"
+                android:textColor="#DCDBDD"
+                android:textSize="13sp" />
 
             <TextView
-                    android:id="@+id/textView2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="none"
-                    android:fontFamily="@string/info_font"
-                    android:singleLine="false"
-                    android:text="Info"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="@color/info_font_color"
-                    android:textSize="@dimen/info_font_size" />
+                android:id="@+id/txtDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="none"
+                android:singleLine="true"
+                android:text="Date"
+
+                android:fontFamily="Helvetica"
+                android:textColor="#24B2DC"
+                android:textSize="13sp" />
 
             <TextView
-                    android:id="@+id/textView3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="none"
-                    android:fontFamily="@string/date_font"
-                    android:singleLine="false"
-                    android:text="Date"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="@color/date_font_color"
-                    android:textSize="@dimen/date_font_size" />
+                android:id="@+id/txtSize"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="none"
+                android:singleLine="true"
+                android:text="Size"
 
-            <TextView
-                    android:id="@+id/textView4"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="none"
-                    android:fontFamily="@string/size_font"
-                    android:singleLine="false"
-                    android:text="Size"
-                    android:textAppearance="?android:attr/textAppearanceSmall"
-                    android:textColor="@color/size_font_color"
-                    android:textSize="@dimen/size_font_size" />
+                android:fontFamily="Helvetica-Bold"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp" />
 
             <Button
-                    android:id="@+id/button1"
-                    style="?android:attr/buttonStyleSmall"
-                    android:layout_width="wrap_content"
-                    android:layout_height="24dp"
-                    android:layout_margin="2dp"
-                    android:background="@color/download_font_background_color"
-                    android:fontFamily="@string/download_font"
-                    android:minWidth="22dp"
-                    android:paddingLeft="8dp"
-                    android:paddingRight="8dp"
-                    android:text="@string/download"
-                    android:textColor="@color/download_font_color"
-                    android:textSize="@dimen/download_font_size" />
+                android:id="@+id/btnDownload"
+                android:layout_width="wrap_content"
+                android:layout_height="28dp"
+                android:layout_margin="2dp"
+                android:text="@string/download"
+
+                android:fontFamily="Helvetica-Bold"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:minWidth="22dp"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:background="#504F50" />
 
             <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:visibility="gone" >
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
                 <TextView
-                        android:id="@+id/textView5"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="@string/progress_font"
-                        android:text="0"
-                        android:textAppearance="?android:attr/textAppearanceSmall"
-                        android:textColor="@color/progress_font_color"
-                        android:textSize="@dimen/progress_font_size" />
+                    android:id="@+id/txtProgress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"
+                    android:text="Progress"
+
+                    android:fontFamily="Helvetica"
+                    android:textColor="#A5A4A6"
+                    android:textSize="11sp" />
 
                 <ProgressBar
-                        android:id="@+id/progressBar1"
-                        style="?android:attr/progressBarStyleHorizontal"
-                        android:layout_width="match_parent"
-                        android:layout_height="5dp"
-                        android:indeterminate="false"
-                        android:max="100"
-                        android:progressDrawable="@drawable/progressbar" />
+                    android:id="@+id/prgDownload"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="5dp"
+                    android:indeterminate="false"
+                    android:max="100"
+                    android:progressDrawable="@drawable/progressbar"
+                    android:visibility="gone" />
             </LinearLayout>
 
             <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:visibility="gone" >
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
 
                 <Button
-                        android:id="@+id/Button01"
-                        style="?android:attr/buttonStyleSmall"
-                        android:layout_width="wrap_content"
-                        android:layout_height="24dp"
-                        android:layout_margin="2dp"
-                        android:background="@color/read_font_background_color"
-                        android:fontFamily="@string/read_font"
-                        android:minWidth="22dp"
-                        android:paddingLeft="8dp"
-                        android:paddingRight="8dp"
-                        android:text="@string/read"
-                        android:textColor="@color/read_font_color"
-                        android:textSize="@dimen/read_font_size" />
+                    android:id="@+id/btnRead"
+                    android:layout_width="wrap_content"
+                    android:layout_height="28dp"
+                    android:layout_margin="2dp"
+                    android:layout_marginRight="5dp"
+                    android:visibility="gone"
+                    android:text="@string/read"
+
+                    android:fontFamily="Helvetica-Bold"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:minWidth="22dp"
+                    android:paddingLeft="10dp"
+                    android:paddingRight="10dp"
+                    android:background="#504F50" />
 
                 <Button
-                        android:id="@+id/button2"
-                        style="?android:attr/buttonStyleSmall"
-                        android:layout_width="wrap_content"
-                        android:layout_height="24dp"
-                        android:layout_margin="2dp"
-                        android:background="@color/archive_font_background_color"
-                        android:fontFamily="@string/archive_font"
-                        android:minWidth="22dp"
-                        android:paddingLeft="8dp"
-                        android:paddingRight="8dp"
-                        android:text="@string/archive"
-                        android:textColor="@color/archive_font_color"
-                        android:textSize="@dimen/archive_font_size" />
+                    android:id="@+id/btnArchive"
+                    android:layout_width="wrap_content"
+                    android:layout_height="28dp"
+                    android:layout_margin="2dp"
+                    android:visibility="gone"
+                    android:text="@string/archive"
+
+                    android:fontFamily="Helvetica-Bold"
+                    android:textColor="#504F50"
+                    android:textSize="14sp"
+                    android:minWidth="22dp"
+                    android:paddingLeft="10dp"
+                    android:paddingRight="10dp"
+                    android:background="#FFFFFF"/>
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
-
 </LinearLayout>
