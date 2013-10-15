@@ -55,6 +55,27 @@ public class GindActivity extends Activity implements GindMandator {
     private final int DOWNLOAD_SHELF_FILE = 0;
 
     @Override
+    public void onStop() {
+        super.onStop();
+
+        boolean downloading = false;
+        final ArrayList<Integer> downloadingThumbs = new ArrayList<Integer>();
+        for (int i = 0; i < flowLayout.getChildCount(); i++) {
+            MagazineThumb thumb = (MagazineThumb) flowLayout.getChildAt(i);
+            if (thumb.isDownloading()) {
+                downloadingThumbs.add(i);
+                downloading = true;
+                break;
+            }
+        }
+
+        if (downloading) {
+            GindActivity.this.terminateDownloads(downloadingThumbs);
+        }
+
+    }
+
+    @Override
     public void onBackPressed() {
 
         boolean downloading = false;
@@ -131,6 +152,8 @@ public class GindActivity extends Activity implements GindMandator {
             Log.d(this.getClass().getName(), "APP_ID: " + this.getString(R.string.app_id) + ", USER_ID: " + userAccount);
 
             loadingScreen();
+
+            File cachedShelf = new File(Configuration.getAbsoluteCacheDir(this) + File.separator + this.getString(R.string.shelf));
             if (Configuration.hasInternetConnection(this)) {
                 // We get the shelf json asynchronously.
                 DownloaderTask downloadShelf = new DownloaderTask(
@@ -145,8 +168,12 @@ public class GindActivity extends Activity implements GindMandator {
                         this.shelfFileVisibility);
                 //downloadShelf.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
                 downloadShelf.execute();
-            } else {
+            } else if (cachedShelf.exists()) {
                 this.readShelf(Configuration.getAbsoluteCacheDir(this) + File.separator + this.getString(R.string.shelf));
+            } else {
+                Toast.makeText(this, "You must have an internet connection to download the shelf.",
+                        Toast.LENGTH_LONG).show();
+                this.finish();
             }
 		} catch (Exception e) {
 			e.printStackTrace();
