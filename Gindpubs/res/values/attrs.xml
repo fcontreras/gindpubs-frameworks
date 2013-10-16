@@ -13,7 +13,6 @@
     <declare-styleable name="FlowLayout">
         <attr name="horizontalSpacing" format="dimension" />
         <attr name="verticalSpacing" format="dimension" />
-        <attr name="centerChildren" format="boolean" />
     </declare-styleable>
     <declare-styleable name="FlowLayout_LayoutParams">
         <attr name="layout_breakLine" format="boolean" />

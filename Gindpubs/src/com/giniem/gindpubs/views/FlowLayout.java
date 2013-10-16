@@ -13,7 +13,6 @@ import com.giniem.gindpubs.R;
 public class FlowLayout extends ViewGroup {
 	private int mHorizontalSpacing;
 	private int mVerticalSpacing;
-	private boolean mCenterChildren;
 	private Paint mPaint;
 
 	public FlowLayout(Context context, AttributeSet attrs) {
@@ -23,7 +22,6 @@ public class FlowLayout extends ViewGroup {
 		try {
 			mHorizontalSpacing = a.getDimensionPixelSize(R.styleable.FlowLayout_horizontalSpacing, 0);
 			mVerticalSpacing = a.getDimensionPixelSize(R.styleable.FlowLayout_verticalSpacing, 0);
-			mCenterChildren = a.getBoolean(R.styleable.FlowLayout_centerChildren, false);
 		} finally {
 			a.recycle();
 		}
@@ -58,7 +56,7 @@ public class FlowLayout extends ViewGroup {
 
 			LayoutParams lp = (LayoutParams) child.getLayoutParams();
 		    spacing = mHorizontalSpacing;
-			if (lp.horizontalSpacing >= 0) {
+			if (lp.horizontalSpacing > 0) {
 				spacing = lp.horizontalSpacing;
 			}
 
@@ -82,10 +80,8 @@ public class FlowLayout extends ViewGroup {
 			breakLine = lp.breakLine;
 		}
 
-		if (!newLine) {
-			height += currentHeight;
-			width = Math.max(width, currentWidth - spacing);
-		}
+		height += currentHeight;
+		width = Math.max(width, currentWidth - spacing);
 
         width += getPaddingRight();
 		height += getPaddingBottom();
@@ -155,7 +151,7 @@ public class FlowLayout extends ViewGroup {
 			super(context, attrs);
 			TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.FlowLayout_LayoutParams);
 			try {
-				horizontalSpacing = a.getDimensionPixelSize(R.styleable.FlowLayout_LayoutParams_layout_horizontalSpacing, -1);
+				horizontalSpacing = a.getDimensionPixelSize(R.styleable.FlowLayout_LayoutParams_layout_horizontalSpacing, 0);
 				breakLine = a.getBoolean(R.styleable.FlowLayout_LayoutParams_layout_breakLine, false);
 			} finally {
 				a.recycle();

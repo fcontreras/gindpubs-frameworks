@@ -220,7 +220,7 @@ public class GindActivity extends Activity implements GindMandator {
 	}
 
 	public void createThumbnails(final JSONArray jsonArray) {
-		Log.i(this.getClass().getName(),
+		Log.d(this.getClass().getName(),
 				"Shelf json contains " + jsonArray.length() + " elements.");
 
 		JSONObject json;
