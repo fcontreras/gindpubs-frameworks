@@ -1,15 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <declare-styleable name="MagazineThumb">
-        <attr name="name" format="string" />
-        <attr name="title" format="string" />
-        <attr name="info" format="string" />
-        <attr name="date" format="string" />
-        <attr name="size" format="string" />
-        <attr name="cover" format="string" />
-        <attr name="url" format="string" />
-    </declare-styleable>
     <declare-styleable name="FlowLayout">
         <attr name="horizontalSpacing" format="dimension" />
         <attr name="verticalSpacing" format="dimension" />
@@ -18,5 +8,4 @@
         <attr name="layout_breakLine" format="boolean" />
         <attr name="layout_horizontalSpacing" format="dimension" />
     </declare-styleable>
-
 </resources>

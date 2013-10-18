@@ -152,7 +152,6 @@ public class GindActivity extends Activity implements GindMandator {
             Log.d(this.getClass().getName(), "APP_ID: " + this.getString(R.string.app_id) + ", USER_ID: " + userAccount);
 
             loadingScreen();
-
             File cachedShelf = new File(Configuration.getAbsoluteCacheDir(this) + File.separator + this.getString(R.string.shelf));
             if (Configuration.hasInternetConnection(this)) {
                 // We get the shelf json asynchronously.
