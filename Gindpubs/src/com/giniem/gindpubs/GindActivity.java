@@ -5,8 +5,12 @@ import android.accounts.AccountManager;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.provider.Settings.Secure;
@@ -26,6 +30,10 @@ import com.giniem.gindpubs.model.Magazine;
 import com.giniem.gindpubs.views.FlowLayout;
 import com.giniem.gindpubs.views.MagazineThumb;
 import com.giniem.gindpubs.workers.DownloaderTask;
+import com.giniem.gindpubs.workers.GCMRegistrationWorker;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -42,6 +50,7 @@ public class GindActivity extends Activity implements GindMandator {
 
 	public final static String BOOK_JSON_KEY = "com.giniem.gindpubs.BOOK_JSON_KEY";
 	public final static String MAGAZINE_NAME = "com.giniem.gindpubs.MAGAZINE_NAME";
+    private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
 
     //Shelf file download properties
     private final String shelfFileName = "shelf.json";
@@ -53,67 +62,14 @@ public class GindActivity extends Activity implements GindMandator {
 
     //Task to be done by this activity
     private final int DOWNLOAD_SHELF_FILE = 0;
+    private final int REGISTRATION_TASK = 1;
 
-    @Override
-    public void onStop() {
-        super.onStop();
-
-        boolean downloading = false;
-        final ArrayList<Integer> downloadingThumbs = new ArrayList<Integer>();
-        for (int i = 0; i < flowLayout.getChildCount(); i++) {
-            MagazineThumb thumb = (MagazineThumb) flowLayout.getChildAt(i);
-            if (thumb.isDownloading()) {
-                downloadingThumbs.add(i);
-                downloading = true;
-                break;
-            }
-        }
-
-        if (downloading) {
-            GindActivity.this.terminateDownloads(downloadingThumbs);
-        }
-
-    }
-
-    @Override
-    public void onBackPressed() {
-
-        boolean downloading = false;
-        final ArrayList<Integer> downloadingThumbs = new ArrayList<Integer>();
-        for (int i = 0; i < flowLayout.getChildCount(); i++) {
-            MagazineThumb thumb = (MagazineThumb) flowLayout.getChildAt(i);
-            if (thumb.isDownloading()) {
-                downloadingThumbs.add(i);
-                downloading = true;
-                break;
-            }
-        }
-
-        if (downloading) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder
-                    .setTitle(this.getString(R.string.exit))
-                    .setMessage(this.getString(R.string.closing_app))
-                    .setPositiveButton(this.getString(R.string.yes), new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-
-                            GindActivity.this.terminateDownloads(downloadingThumbs);
-                            GindActivity.super.onBackPressed();
-                        }
-                    })
-                    .setNegativeButton(this.getString(R.string.no), null)
-                    .show();
-        } else {
-            super.onBackPressed();
-        }
-    }
-
-    private void terminateDownloads(final ArrayList<Integer> downloadingThumbs) {
-        for (Integer id : downloadingThumbs) {
-            MagazineThumb thumb = (MagazineThumb) flowLayout.getChildAt(id);
-            thumb.getPackDownloader().cancelDownload();
-        }
-    }
+    // For Google Cloud Messaging
+    private GoogleCloudMessaging gcm;
+    private String registrationId;
+    public static final String PROPERTY_REG_ID = "registration_id";
+    private static final String PROPERTY_APP_VERSION = "appVersion";
+    public static String userAccount = "";
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -131,7 +87,6 @@ public class GindActivity extends Activity implements GindMandator {
             //Getting the user main account
 			AccountManager manager = AccountManager.get(this);
 			Account[] accounts = manager.getAccountsByType("com.google");
-            String userAccount = "";
 
             // If we can't get a google account, then we will have to use
             // any account the user have on the phone.
@@ -152,6 +107,20 @@ public class GindActivity extends Activity implements GindMandator {
             Log.d(this.getClass().getName(), "APP_ID: " + this.getString(R.string.app_id) + ", USER_ID: " + userAccount);
 
             loadingScreen();
+            if (checkPlayServices()) {
+                Log.d(this.getClass().toString(), "Google Play Services enabled.");
+                gcm = GoogleCloudMessaging.getInstance(this);
+                registrationId = getRegistrationId(this.getApplicationContext());
+
+                Log.d(this.getClass().toString(), "Obtained registration ID: " + registrationId);
+
+                if (registrationId.isEmpty()) {
+                    registerInBackground();
+                }
+            } else {
+                Log.e(this.getClass().toString(), "No valid Google Play Services APK found.");
+            }
+
             File cachedShelf = new File(Configuration.getAbsoluteCacheDir(this) + File.separator + this.getString(R.string.shelf));
             if (Configuration.hasInternetConnection(this)) {
                 // We get the shelf json asynchronously.
@@ -180,12 +149,77 @@ public class GindActivity extends Activity implements GindMandator {
 		}
 	}
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        checkPlayServices();
+    }
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.gind, menu);
 		return true;
 	}
+
+    private String getRegistrationId(Context context) {
+        final SharedPreferences prefs = getGCMPreferences(context);
+        String regId = prefs.getString(PROPERTY_REG_ID, "");
+        if (regId.isEmpty()) {
+            Log.d(this.getClass().toString(), "Registration ID not found.");
+            return "";
+        }
+        // Check if app was updated; if so, it must clear the registration ID
+        // since the existing regID is not guaranteed to work with the new
+        // app version.
+        int registeredVersion = prefs.getInt(PROPERTY_APP_VERSION, Integer.MIN_VALUE);
+        int currentVersion = getAppVersion(context);
+        if (registeredVersion != currentVersion) {
+            Log.d(this.getClass().toString(), "App version changed.");
+            return "";
+        }
+        return regId;
+    }
+
+    /**
+     * @return Application's version code from the {@code PackageManager}.
+     */
+    private static int getAppVersion(Context context) {
+        try {
+            PackageInfo packageInfo = context.getPackageManager()
+                    .getPackageInfo(context.getPackageName(), 0);
+            return packageInfo.versionCode;
+        } catch (PackageManager.NameNotFoundException e) {
+            // should never happen
+            throw new RuntimeException("Could not get package name: " + e);
+        }
+    }
+
+    /**
+     * @return Application's {@code SharedPreferences}.
+     */
+    private SharedPreferences getGCMPreferences(Context context) {
+        // This sample app persists the registration ID in shared preferences, but
+        // how you store the regID in your app is up to you.
+        return getSharedPreferences(GindActivity.class.getSimpleName(),
+                Context.MODE_PRIVATE);
+    }
+
+    private void storeRegistrationId(Context context, String regId) {
+        final SharedPreferences prefs = getGCMPreferences(context);
+        int appVersion = getAppVersion(context);
+        Log.i(this.getClass().toString(), "Saving regId on app version " + appVersion);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString(PROPERTY_REG_ID, regId);
+        editor.putInt(PROPERTY_APP_VERSION, appVersion);
+        editor.commit();
+    }
+
+    private void registerInBackground() {
+        GCMRegistrationWorker registrationWorker = new GCMRegistrationWorker(this.getApplicationContext(),
+                this.gcm, this.REGISTRATION_TASK, this);
+        registrationWorker.execute();
+    }
 
     private void loadBackground() {
         WebView webview = (WebView) findViewById(R.id.backgroundWebView);
@@ -350,6 +384,97 @@ public class GindActivity extends Activity implements GindMandator {
                     this.readShelf(filePath);
                 }
                 break;
+            case REGISTRATION_TASK:
+                if (params[0].equals("SUCCESS")) {
+                    this.registrationId = params[1];
+                    this.storeRegistrationId(this.getApplicationContext(), params[1]);
+                    break;
+                } else {
+                    Toast.makeText(this, "Could not create registration ID for GCM services.",
+                            Toast.LENGTH_LONG).show();
+                }
         }
-    };
+    }
+
+    private boolean checkPlayServices() {
+        try {
+            int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
+            if (resultCode != ConnectionResult.SUCCESS) {
+                if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
+                    GooglePlayServicesUtil.getErrorDialog(resultCode, this,
+                            PLAY_SERVICES_RESOLUTION_REQUEST).show();
+                } else {
+                    Log.e(this.getClass().toString(), "This device does not support Google Play Services.");
+                    finish();
+                }
+                return false;
+            }
+            return true;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return false;
+        }
+    }
+
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        boolean downloading = false;
+        final ArrayList<Integer> downloadingThumbs = new ArrayList<Integer>();
+        for (int i = 0; i < flowLayout.getChildCount(); i++) {
+            MagazineThumb thumb = (MagazineThumb) flowLayout.getChildAt(i);
+            if (thumb.isDownloading()) {
+                downloadingThumbs.add(i);
+                downloading = true;
+                break;
+            }
+        }
+
+        if (downloading) {
+            GindActivity.this.terminateDownloads(downloadingThumbs);
+        }
+
+    }
+
+    @Override
+    public void onBackPressed() {
+
+        boolean downloading = false;
+        final ArrayList<Integer> downloadingThumbs = new ArrayList<Integer>();
+        for (int i = 0; i < flowLayout.getChildCount(); i++) {
+            MagazineThumb thumb = (MagazineThumb) flowLayout.getChildAt(i);
+            if (thumb.isDownloading()) {
+                downloadingThumbs.add(i);
+                downloading = true;
+                break;
+            }
+        }
+
+        if (downloading) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder
+                    .setTitle(this.getString(R.string.exit))
+                    .setMessage(this.getString(R.string.closing_app))
+                    .setPositiveButton(this.getString(R.string.yes), new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+
+                            GindActivity.this.terminateDownloads(downloadingThumbs);
+                            GindActivity.super.onBackPressed();
+                        }
+                    })
+                    .setNegativeButton(this.getString(R.string.no), null)
+                    .show();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    private void terminateDownloads(final ArrayList<Integer> downloadingThumbs) {
+        for (Integer id : downloadingThumbs) {
+            MagazineThumb thumb = (MagazineThumb) flowLayout.getChildAt(id);
+            thumb.getPackDownloader().cancelDownload();
+        }
+    }
 }

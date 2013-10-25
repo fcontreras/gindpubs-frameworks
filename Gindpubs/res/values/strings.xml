@@ -3,6 +3,12 @@
 
     <!-- Properties to configure the application's UI and behaviour -->
 
+    <!-- Project Number of the Google API console identifying the notifications sender -->
+    <string name="sender_id">356573692838</string>
+
+    <!-- Title of the notification recieved from the GCM -->
+    <string name="notification_title">New Updates</string>
+
     <!-- The application id that will be send to the server when retrieving the shelf -->
     <string name="app_id">Gindpubs</string>
     <string name="exit">Exit</string>
@@ -11,10 +17,10 @@
     <string name="no">No</string>
 
     <!-- Shelf URL -->
-    <string name="newstand_manifest_url">http://bakerframework.com/demo/shelf.json</string>
+    <string name="newstand_manifest_url">http://rofilsa.giniem.com/magazine/json-list/device/iPad/env/PRODUCTION/app_id/:app_id</string>
     <string name="purchase_confirmation_url">http://bakerframework.com/demo/shelf.json</string>
     <string name="purchases_url">http://bakerframework.com/demo/shelf.json</string>
-    <string name="post_apns_token_url">http://bakerframework.com/demo/shelf.json</string>
+    <string name="post_apns_token_url">http://192.168.1.8/magazine/apns-token</string>
 
     <!-- Path to store the cache for the thumbnails inside the system's cache directory. -->
     <string name="thumbnails">thumbnails</string>
