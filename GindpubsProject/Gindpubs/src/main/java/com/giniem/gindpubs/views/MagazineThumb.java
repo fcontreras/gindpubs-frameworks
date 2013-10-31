@@ -271,7 +271,7 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
     /**
      * Starts the download of an issue, hides the download controls and shows the progress controls.
      */
-    private void startPackageDownload() {
+    public void startPackageDownload() {
         //If the issue is not downloading we start the download, otherwise, do nothing.
         if (!isDownloading()) {
             //Hide download button

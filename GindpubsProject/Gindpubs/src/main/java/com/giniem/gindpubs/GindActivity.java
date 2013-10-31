@@ -42,6 +42,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Locale;
 
@@ -68,10 +70,25 @@ public class GindActivity extends Activity implements GindMandator {
     private String registrationId;
     public static final String PROPERTY_REG_ID = "registration_id";
     private static final String PROPERTY_APP_VERSION = "appVersion";
+
+    // Used to auto-start download of last content if a notification is received.
+    private boolean startDownload = false;
+
+    // For parsing dates
+    SimpleDateFormat sdfInput;
+    SimpleDateFormat sdfOutput;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
+        sdfInput = new SimpleDateFormat(
+                getString(R.string.inputDateFormat), Locale.US);
+        sdfOutput = new SimpleDateFormat(
+                getString(R.string.outputDateFormat), Locale.US);
+
+        Intent intent = this.getIntent();
+        this.startDownload = intent.hasExtra("START_DOWNLOAD");
 
 		try {
 			// Remove title bar
@@ -255,10 +272,6 @@ public class GindActivity extends Activity implements GindMandator {
             flowLayout = (FlowLayout) findViewById(R.id.thumbsContainer);
 
 			int length = jsonArray.length();
-			SimpleDateFormat sdfInput = new SimpleDateFormat(
-					getString(R.string.inputDateFormat), Locale.US);
-			SimpleDateFormat sdfOutput = new SimpleDateFormat(
-					getString(R.string.outputDateFormat), Locale.US);
 
 			for (int i = 0; i < length; i++) {
 				json = new JSONObject(jsonArray.getString(i));
@@ -340,6 +353,9 @@ public class GindActivity extends Activity implements GindMandator {
 
             //Create thumbs
             this.createThumbnails(json);
+            if (this.startDownload) {
+                this.startDownloadLastContent(json);
+            }
         } catch (Exception e) {
             Log.e(this.getClass().getName(), "Upss, we colapsed.. :( "
                     + e.getMessage());
@@ -356,7 +372,6 @@ public class GindActivity extends Activity implements GindMandator {
      * @param progress
      */
     public void updateProgress(final int taskId, Long... progress){};
-
 
     /**
      * This will manage all the task post execute actions
@@ -402,6 +417,45 @@ public class GindActivity extends Activity implements GindMandator {
         return true;
     }
 
+    private void startDownloadLastContent(final JSONArray jsonArray) {
+        try {
+            ArrayList<Magazine> list = new ArrayList<Magazine>();
+            JSONObject jsonObject;
+            Magazine magazine;
+
+            for (int i = 0; i < jsonArray.length(); i++) {
+                jsonObject = new JSONObject(jsonArray.getString(i));
+                magazine = new Magazine();
+
+                Date date = sdfInput.parse(jsonObject.getString("date"));
+                String dateString = sdfOutput.format(date);
+
+                magazine.setDate(dateString);
+                magazine.setName(new String(jsonObject.getString("name").getBytes("UTF-8"), "UTF-8"));
+
+                list.add(magazine);
+            }
+
+            Collections.sort(list, new Comparator<Magazine>() {
+
+                @Override
+                public int compare(Magazine s, Magazine s2) {
+                    return s2.getDate().compareTo(s.getDate());
+                }
+            });
+
+            for (int i = 0; i < flowLayout.getChildCount(); i++) {
+                MagazineThumb thumb = (MagazineThumb) flowLayout.getChildAt(i);
+                if (thumb.getMagazine().getName().equals(list.get(0).getName()) &&
+                        thumb.getMagazine().getDate().equals(list.get(0).getDate())) {
+                    Log.d("Automatically starting download of ", thumb.getMagazine().getName());
+                    thumb.startPackageDownload();
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
 
     @Override
     public void onStop() {
@@ -421,7 +475,6 @@ public class GindActivity extends Activity implements GindMandator {
         if (downloading) {
             GindActivity.this.terminateDownloads(downloadingThumbs);
         }
-
     }
 
     @Override

@@ -33,31 +33,39 @@ public class GcmBroadcastReceiver extends BroadcastReceiver {
              * recognize.
              */
             if (GoogleCloudMessaging.MESSAGE_TYPE_SEND_ERROR.equals(messageType)) {
-                sendNotification(context, "Send error: " + extras.toString());
+                sendNotification(context, "Error notification", "Send error: " + extras.toString());
             } else if (GoogleCloudMessaging.MESSAGE_TYPE_DELETED.equals(messageType)) {
-                sendNotification(context, "Deleted messages on server: " + extras.toString());
+                sendNotification(context, "Deleted messages", "Deleted messages on server: " + extras.toString());
                 // If it's a regular GCM message, do some work.
             } else if (GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE.equals(messageType)) {
 
+                Intent gindIntent = new Intent(context, GindActivity.class);
+                gindIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                gindIntent.putExtra("START_DOWNLOAD", extras.getString("message"));
+                context.startActivity(gindIntent);
+
                 // Post notification of received message.
-                sendNotification(context, "Received: " + extras.toString());
+                //sendNotification(context, extras.getString("collapse_key"), extras.getString("message"));
                 Log.i(this.getClass().toString(), "Received: " + extras.toString());
             }
         }
     }
 
-    private void sendNotification(Context context, String msg) {
+    private void sendNotification(Context context, String title, String message) {
         notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
-        PendingIntent contentIntent = PendingIntent.getActivity(context, 0, new Intent(context, GindActivity.class), 0);
+        Intent intent = new Intent(context, GindActivity.class);
+        intent.putExtra("START_DOWNLOAD", message);
+
+        PendingIntent contentIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(context)
                         .setSmallIcon(R.drawable.ic_launcher)
-                        .setContentTitle("GCM Notification")
+                        .setContentTitle(title)
                         .setStyle(new NotificationCompat.BigTextStyle()
-                                .bigText(msg))
-                        .setContentText(msg);
+                                .bigText(message))
+                        .setContentText(message);
 
         mBuilder.setContentIntent(contentIntent);
         notificationManager.notify(NOTIFICATION_ID, mBuilder.build());
