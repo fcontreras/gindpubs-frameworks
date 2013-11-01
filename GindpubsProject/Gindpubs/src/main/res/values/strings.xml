@@ -14,7 +14,7 @@
     <string name="no">No</string>
 
     <!-- Shelf URL -->
-    <string name="newstand_manifest_url">http://bakerframework.com/demo/shelf.json</string>
+    <string name="newstand_manifest_url">http://rofilsa.giniem.com/magazine/json-list/device/iPad/env/PRODUCTION/app_id/:app_id</string>
     <string name="purchase_confirmation_url">http://bakerframework.com/demo/shelf.json</string>
     <string name="purchases_url">http://bakerframework.com/demo/shelf.json</string>
     <string name="post_apns_token_url">http://bakerframework.com/demo/shelf.json</string>
@@ -33,6 +33,8 @@
 
     <!-- Name of the magazine's index file. -->
     <string name="index">index.html</string>
+
+    <string name="package_extension">.zip</string>
 
     <!-- General strings for the UI -->
     <string name="app_name">Gindpubs</string>

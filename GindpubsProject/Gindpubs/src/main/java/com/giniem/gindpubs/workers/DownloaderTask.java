@@ -3,6 +3,7 @@ package com.giniem.gindpubs.workers;
 import android.app.DownloadManager;
 import android.app.DownloadManager.Query;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -10,9 +11,12 @@ import android.os.Build;
 import android.os.Environment;
 import android.util.Log;
 
+import com.giniem.gindpubs.GindActivity;
 import com.giniem.gindpubs.client.GindMandator;
 
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 
 public class DownloaderTask extends AsyncTask<String, Long, String> {
 
@@ -31,6 +35,7 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
     Uri downloadedFile;
     private long downloadId = -1L;
     private boolean overwrite = true;
+    private Context context;
 	
 	public DownloaderTask(Context context,
                           GindMandator mandator,
@@ -41,6 +46,7 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
                           final String fileDesc,
                           final String relDirPath,
                           final int visibility) {
+        this.context = context;
         this.mandator = mandator;
         this.taskId = taskId;
         this.dm = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
@@ -51,6 +57,10 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
         this.relativeDirPath = relDirPath;
         this.visibility = visibility;
 	}
+
+    public long getDownloadId() {
+        return this.downloadId;
+    }
 
     public void setOverwrite(final boolean overwrite) {
         this.overwrite = overwrite;
@@ -97,6 +107,10 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
         return file.delete();
     }
 
+    public SharedPreferences getDownloadPreferences() {
+        return this.context.getSharedPreferences(GindActivity.class.getSimpleName(), Context.MODE_PRIVATE);
+    }
+
     @Override
 	protected String doInBackground(String... params) {
 
@@ -115,7 +129,6 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
             String filepath = Environment.getExternalStorageDirectory().getPath() + relativeDirPath + File.separator + fileName;
             boolean result = this.fileExists(filepath);
 
-            Log.e(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", "Existence of file " + filepath + " is " + result);
             if (result) {
                 this.deleteFile(filepath);
             }

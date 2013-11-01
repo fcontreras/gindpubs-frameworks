@@ -79,6 +79,10 @@ public class UnzipperTask extends AsyncTask<String, Long, String> {
                 }
 
                 zipInput.close();
+
+                // Delete the zip file
+                File zipFile = new File(params[0]);
+                zipFile.delete();
             } else {
                 Log.e(this.getClass().getName(), "Could not create the package directory");
                 //TODO: Notify the user

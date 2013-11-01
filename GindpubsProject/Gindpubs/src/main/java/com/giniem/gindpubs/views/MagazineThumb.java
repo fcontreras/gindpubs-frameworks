@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
@@ -29,6 +30,9 @@ import com.giniem.gindpubs.workers.MagazineDeleteTask;
 import com.giniem.gindpubs.workers.UnzipperTask;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 
 public class MagazineThumb extends LinearLayout implements GindMandator {
@@ -78,12 +82,17 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
     private final int UNZIP_MAGAZINE_TASK = 2;
     private final int MAGAZINE_DELETE_TASK = 3;
 
+    private Context context;
+
     /**
      * Creates an instance of MagazineThumb to with an activity context.
      * @param context the parent Activity context.
      */
 	public MagazineThumb(Context context, Magazine mag) {
 		super(context);
+
+        this.context = context;
+
         //Paths to the application files
         dirPath = Configuration.getApplicationRelativeMagazinesPath(context);
         cachePath = Configuration.getCacheDirectory(context);
@@ -96,7 +105,7 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
                 this,
                 this.MAGAZINE_DOWNLOAD_TASK,
                 this.magazine.getUrl(),
-                this.magazine.getName() + ".zip",
+                this.magazine.getName() + context.getString(R.string.package_extension),
                 this.magazine.getTitle(),
                 this.magazine.getInfo(),
                 this.dirPath,
@@ -118,6 +127,10 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
 
         //Logging initialization
         Log.d(this.getClass().getName(), "Magazines relative dir: " + dirPath);
+    }
+
+    public String getDirPath() {
+        return this.dirPath;
     }
 
     /**
@@ -291,7 +304,8 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
      * @param filePath the path where the file to unzip is located.
      * @param name the name of the file to unzip.
      */
-	private void startUnzip(final String filePath, final String name) {
+	public void startUnzip(final String filePath, final String name) {
+        findViewById(R.id.btnDownload).setVisibility(View.GONE);
         //Shows and set the text of progress
         ((TextView)findViewById(R.id.txtProgress)).setText(R.string.unzipping);
         findViewById(R.id.txtProgress).setVisibility(View.VISIBLE);

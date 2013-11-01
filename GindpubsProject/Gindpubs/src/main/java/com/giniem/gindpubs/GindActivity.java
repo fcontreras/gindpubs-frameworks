@@ -13,6 +13,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.Settings.Secure;
 import android.util.Log;
 import android.view.Gravity;
@@ -45,12 +46,19 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 
 public class GindActivity extends Activity implements GindMandator {
 
 	public final static String BOOK_JSON_KEY = "com.giniem.gindpubs.BOOK_JSON_KEY";
 	public final static String MAGAZINE_NAME = "com.giniem.gindpubs.MAGAZINE_NAME";
+    public static final String DOWNLOAD_IDS = "com.giniem.gindpubs.DOWNLOAD_IDS";
+    public static final String PROPERTY_REG_ID = "com.giniem.gindpubs.REGISTRATION_ID";
+    private static final String PROPERTY_APP_VERSION = "com.giniem.gindpubs.APP_VERSION";
+
+
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
 
     //Shelf file download properties
@@ -68,8 +76,6 @@ public class GindActivity extends Activity implements GindMandator {
     // For Google Cloud Messaging
     private GoogleCloudMessaging gcm;
     private String registrationId;
-    public static final String PROPERTY_REG_ID = "registration_id";
-    private static final String PROPERTY_APP_VERSION = "appVersion";
 
     // Used to auto-start download of last content if a notification is received.
     private boolean startDownload = false;
@@ -335,6 +341,16 @@ public class GindActivity extends Activity implements GindMandator {
 		return result;
 	}
 
+    private boolean magazineZipExists(final String name) {
+        boolean result = false;
+
+        File magazine = new File(Configuration.getDiskDir(this).getPath()
+                + File.separator + name);
+        result = magazine.exists() && !magazine.isDirectory();
+
+        return result;
+    }
+
     private void readShelf(final String path) {
         try {
             //Read the shelf file
@@ -356,6 +372,7 @@ public class GindActivity extends Activity implements GindMandator {
             if (this.startDownload) {
                 this.startDownloadLastContent(json);
             }
+            this.unzipPendingPackages();
         } catch (Exception e) {
             Log.e(this.getClass().getName(), "Upss, we colapsed.. :( "
                     + e.getMessage());
@@ -457,24 +474,38 @@ public class GindActivity extends Activity implements GindMandator {
         }
     }
 
+    private void unzipPendingPackages() {
+        for (int i = 0; i < flowLayout.getChildCount(); i++) {
+            MagazineThumb thumb = (MagazineThumb) flowLayout.getChildAt(i);
+            String zipName = thumb.getMagazine().getName().concat(this.getString(R.string.package_extension));
+
+            if (!this.magazineExists(thumb.getMagazine().getName()) && this.magazineZipExists(zipName)) {
+                Log.d(this.getClass().toString(), "Continue unzip of " + thumb.getMagazine().getName());
+                String filepath = Environment.getExternalStorageDirectory().getPath() + thumb.getDirPath() + File.separator + zipName;
+
+                thumb.startUnzip(filepath, thumb.getMagazine().getName());
+            }
+        }
+    }
+
     @Override
     public void onStop() {
         super.onStop();
 
-        boolean downloading = false;
-        final ArrayList<Integer> downloadingThumbs = new ArrayList<Integer>();
-        for (int i = 0; i < flowLayout.getChildCount(); i++) {
-            MagazineThumb thumb = (MagazineThumb) flowLayout.getChildAt(i);
-            if (thumb.isDownloading()) {
-                downloadingThumbs.add(i);
-                downloading = true;
-                break;
-            }
-        }
-
-        if (downloading) {
-            GindActivity.this.terminateDownloads(downloadingThumbs);
-        }
+//        boolean downloading = false;
+//        final ArrayList<Integer> downloadingThumbs = new ArrayList<Integer>();
+//        for (int i = 0; i < flowLayout.getChildCount(); i++) {
+//            MagazineThumb thumb = (MagazineThumb) flowLayout.getChildAt(i);
+//            if (thumb.isDownloading()) {
+//                downloadingThumbs.add(i);
+//                downloading = true;
+//                break;
+//            }
+//        }
+//
+//        if (downloading) {
+//            GindActivity.this.terminateDownloads(downloadingThumbs);
+//        }
     }
 
     @Override
