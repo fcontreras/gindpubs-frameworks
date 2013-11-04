@@ -46,15 +46,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Locale;
-import java.util.Set;
+
+import com.giniem.gindpubs.R.*;
 
 public class GindActivity extends Activity implements GindMandator {
 
 	public final static String BOOK_JSON_KEY = "com.giniem.gindpubs.BOOK_JSON_KEY";
 	public final static String MAGAZINE_NAME = "com.giniem.gindpubs.MAGAZINE_NAME";
-    public static final String DOWNLOAD_IDS = "com.giniem.gindpubs.DOWNLOAD_IDS";
     public static final String PROPERTY_REG_ID = "com.giniem.gindpubs.REGISTRATION_ID";
     private static final String PROPERTY_APP_VERSION = "com.giniem.gindpubs.APP_VERSION";
 
@@ -405,6 +404,10 @@ public class GindActivity extends Activity implements GindMandator {
 
                 if (taskStatus.equals("SUCCESS")) {
                     this.readShelf(filePath);
+                } else if ("DIRECTORY_NOT_FOUND".equals(taskStatus) && "".equals(filePath)) {
+                    Toast.makeText(this, "Please insert an SD card to use the app.",
+                            Toast.LENGTH_LONG).show();
+                    finish();
                 }
                 break;
             case REGISTRATION_TASK:
@@ -491,21 +494,6 @@ public class GindActivity extends Activity implements GindMandator {
     @Override
     public void onStop() {
         super.onStop();
-
-//        boolean downloading = false;
-//        final ArrayList<Integer> downloadingThumbs = new ArrayList<Integer>();
-//        for (int i = 0; i < flowLayout.getChildCount(); i++) {
-//            MagazineThumb thumb = (MagazineThumb) flowLayout.getChildAt(i);
-//            if (thumb.isDownloading()) {
-//                downloadingThumbs.add(i);
-//                downloading = true;
-//                break;
-//            }
-//        }
-//
-//        if (downloading) {
-//            GindActivity.this.terminateDownloads(downloadingThumbs);
-//        }
     }
 
     @Override

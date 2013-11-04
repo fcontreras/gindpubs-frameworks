@@ -15,8 +15,6 @@ import com.giniem.gindpubs.GindActivity;
 import com.giniem.gindpubs.client.GindMandator;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.Set;
 
 public class DownloaderTask extends AsyncTask<String, Long, String> {
 
@@ -36,8 +34,8 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
     private long downloadId = -1L;
     private boolean overwrite = true;
     private Context context;
-	
-	public DownloaderTask(Context context,
+
+    public DownloaderTask(Context context,
                           GindMandator mandator,
                           final int taskId,
                           final String downloadUrl,
@@ -56,7 +54,7 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
         this.fileDescription = fileDesc;
         this.relativeDirPath = relDirPath;
         this.visibility = visibility;
-	}
+    }
 
     public long getDownloadId() {
         return this.downloadId;
@@ -79,7 +77,7 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
             try {
                 if (c.getCount() > 0) {
                     c.moveToFirst();
-                    int status  = c.getInt(c.getColumnIndex(DownloadManager.COLUMN_STATUS));
+                    int status = c.getInt(c.getColumnIndex(DownloadManager.COLUMN_STATUS));
                     result = (status == DownloadManager.STATUS_RUNNING);
                 }
             } catch (NullPointerException ex) {
@@ -112,7 +110,7 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
     }
 
     @Override
-	protected String doInBackground(String... params) {
+    protected String doInBackground(String... params) {
 
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(downloadUrl));
         request.setDescription(fileDescription);
@@ -134,62 +132,68 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
             }
         }
 
-        request.setDestinationInExternalPublicDir(relativeDirPath, fileName);
-        downloadId = dm.enqueue(request);
-
-        Query query = new Query();
-        query.setFilterById(downloadId);
-
-        boolean downloading = true;
         String result = "";
-        while (downloading) {
-            Cursor c = this.dm.query(query);
-            c.moveToFirst();
-            int status  = c.getInt(c.getColumnIndex(DownloadManager.COLUMN_STATUS));
+        try {
+            request.setDestinationInExternalPublicDir(relativeDirPath, fileName);
+            downloadId = dm.enqueue(request);
 
-            switch (status) {
-                case DownloadManager.STATUS_PAUSED:
-                    //Do nothing
-                    break;
-                case DownloadManager.STATUS_PENDING:
-                    //Do nothing
-                    break;
-                case DownloadManager.STATUS_RUNNING:
-                    long totalBytes = c.getLong(c.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
-                    long bytesSoFar = c.getLong(c.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
-                    long progress = (bytesSoFar * 100 / totalBytes);
-                    Log.d(this.getClass().getName(), "RUNNING Download of " + this.fileName + " progress: " + progress + "%");
-                    publishProgress(progress, bytesSoFar, totalBytes);
-                    break;
-                case DownloadManager.STATUS_SUCCESSFUL:
-                    publishProgress(100L,
-                            c.getLong(c.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)),
-                            c.getLong(c.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)));
-                    downloading = false;
-                    Log.d(this.getClass().getName(), "SUCCESSFULLY Downloaded " + this.fileName );
-                    result = "SUCCESS";
-                    downloadedFile = dm.getUriForDownloadedFile(downloadId);
-                    break;
-                case DownloadManager.STATUS_FAILED:
-                    Log.e(this.getClass().getName(), "ERROR Downloading " + this.fileName );
-                    downloading = false;
-                    break;
+            Query query = new Query();
+            query.setFilterById(downloadId);
+
+            boolean downloading = true;
+            while (downloading) {
+                Cursor c = this.dm.query(query);
+                c.moveToFirst();
+                int status = c.getInt(c.getColumnIndex(DownloadManager.COLUMN_STATUS));
+
+                switch (status) {
+                    case DownloadManager.STATUS_PAUSED:
+                        //Do nothing
+                        break;
+                    case DownloadManager.STATUS_PENDING:
+                        //Do nothing
+                        break;
+                    case DownloadManager.STATUS_RUNNING:
+                        long totalBytes = c.getLong(c.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
+                        long bytesSoFar = c.getLong(c.getColumnIndex(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
+                        long progress = (bytesSoFar * 100 / totalBytes);
+                        Log.d(this.getClass().getName(), "RUNNING Download of " + this.fileName + " progress: " + progress + "%");
+                        publishProgress(progress, bytesSoFar, totalBytes);
+                        break;
+                    case DownloadManager.STATUS_SUCCESSFUL:
+                        publishProgress(100L,
+                                c.getLong(c.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)),
+                                c.getLong(c.getColumnIndex(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)));
+                        downloading = false;
+                        Log.d(this.getClass().getName(), "SUCCESSFULLY Downloaded " + this.fileName);
+                        result = "SUCCESS";
+                        downloadedFile = dm.getUriForDownloadedFile(downloadId);
+                        break;
+                    case DownloadManager.STATUS_FAILED:
+                        Log.e(this.getClass().getName(), "ERROR Downloading " + this.fileName);
+                        downloading = false;
+                        break;
+                }
+                c.close();
             }
-            c.close();
+        } catch (IllegalStateException ex) {
+            result = "DIRECTORY_NOT_FOUND";
+            ex.printStackTrace();
         }
 
+
         return result;
-	}
-	
-	@Override
-	protected void onProgressUpdate(Long... progress) {
+    }
+
+    @Override
+    protected void onProgressUpdate(Long... progress) {
         mandator.updateProgress(taskId, progress[0], progress[1], progress[2]);
     }
-	
-	@Override
-	protected void onPostExecute(String result) {
-        //String filePath = this.relativeDirPath + File.separator + this.fileName;
-        mandator.postExecute(taskId, result, downloadedFile.getPath());
+
+    @Override
+    protected void onPostExecute(String result) {
+        String path = (null == downloadedFile) ? "" : downloadedFile.getPath();
+        mandator.postExecute(taskId, result, path);
     }
 
 }
