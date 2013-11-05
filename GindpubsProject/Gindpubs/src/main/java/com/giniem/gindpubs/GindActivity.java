@@ -330,12 +330,27 @@ public class GindActivity extends Activity implements GindMandator {
 		}
 	}
 
+    private boolean magazineDirExists(final String name) {
+        boolean result = false;
+
+        File magazine = new File(Configuration.getDiskDir(this).getPath()
+                + File.separator + name);
+        result = magazine.exists() && magazine.isDirectory();
+
+        return result;
+    }
+
 	private boolean magazineExists(final String name) {
 		boolean result = false;
 
-		File magazine = new File(Configuration.getDiskDir(this).getPath()
+		File magazineDir = new File(Configuration.getDiskDir(this).getPath()
 				+ File.separator + name);
-		result = magazine.exists() && magazine.isDirectory();
+		result = magazineDir.exists() && magazineDir.isDirectory();
+
+        if (result) {
+            result = (new File(magazineDir.getPath() + File.separator + this.getString(R.string.book)))
+                    .exists();
+        }
 
 		return result;
 	}
@@ -482,7 +497,7 @@ public class GindActivity extends Activity implements GindMandator {
             MagazineThumb thumb = (MagazineThumb) flowLayout.getChildAt(i);
             String zipName = thumb.getMagazine().getName().concat(this.getString(R.string.package_extension));
 
-            if (!this.magazineExists(thumb.getMagazine().getName()) && this.magazineZipExists(zipName)) {
+            if (this.magazineZipExists(zipName)) {
                 Log.d(this.getClass().toString(), "Continue unzip of " + thumb.getMagazine().getName());
                 String filepath = Environment.getExternalStorageDirectory().getPath() + thumb.getDirPath() + File.separator + zipName;
 
