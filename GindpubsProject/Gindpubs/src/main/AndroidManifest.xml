@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.giniem.gindpubs"
     android:versionCode="1"
-    android:versionName="1.0" >
+    android:versionName="1.0">
 
     <uses-sdk
         android:minSdkVersion="11"
@@ -16,7 +16,9 @@
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
-    <permission android:name="com.giniem.gindpubs.permission.C2D_MESSAGE" android:protectionLevel="signature" />
+    <permission
+        android:name="com.giniem.gindpubs.permission.C2D_MESSAGE"
+        android:protectionLevel="signature" />
     <uses-permission android:name="com.giniem.gindpubs.permission.C2D_MESSAGE" />
 
 
@@ -25,11 +27,11 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:hardwareAccelerated="true"
-        android:theme="@style/AppTheme" >
+        android:theme="@style/AppTheme">
         <activity
             android:name="com.giniem.gindpubs.GindActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/app_name" >
+            android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -39,7 +41,7 @@
         <activity
             android:name="com.giniem.gindpubs.MagazineActivity"
             android:parentActivityName="com.giniem.gindpubs.GindActivity"
-        	android:configChanges="orientation|screenSize" >
+            android:configChanges="orientation|screenSize">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.giniem.gindpubs.GindActivity" />
@@ -47,7 +49,7 @@
 
         <receiver
             android:name=".GcmBroadcastReceiver"
-            android:permission="com.google.android.c2dm.permission.SEND" >
+            android:permission="com.google.android.c2dm.permission.SEND">
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
                 <category android:name="com.giniem.gindpubs" />

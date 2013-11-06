@@ -171,6 +171,7 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
                         break;
                     case DownloadManager.STATUS_FAILED:
                         Log.e(this.getClass().getName(), "ERROR Downloading " + this.fileName);
+                        dm.remove(downloadId);
                         downloading = false;
                         break;
                 }
