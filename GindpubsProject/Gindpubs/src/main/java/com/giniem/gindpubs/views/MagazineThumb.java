@@ -100,17 +100,6 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
         //Set the magazine model to the thumb instance.
         this.magazine = mag;
 
-        //Package downloader task initialization.
-        packDownloader = new DownloaderTask(context,
-                this,
-                this.MAGAZINE_DOWNLOAD_TASK,
-                this.magazine.getUrl(),
-                this.magazine.getName() + context.getString(R.string.package_extension),
-                this.magazine.getTitle(),
-                this.magazine.getInfo(),
-                this.dirPath,
-                this.MAGAZINE_DOWNLOAD_VISIBILITY);
-
         //Thumbnail downloader task initialization.
         thumbDownloader = new DownloaderTask(context,
                 this,
@@ -285,6 +274,20 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
      * Starts the download of an issue, hides the download controls and shows the progress controls.
      */
     public void startPackageDownload() {
+
+        if (null == this.packDownloader) {
+            //Package downloader task initialization.
+            packDownloader = new DownloaderTask(this.context,
+                    this,
+                    this.MAGAZINE_DOWNLOAD_TASK,
+                    this.magazine.getUrl(),
+                    this.magazine.getName() + context.getString(R.string.package_extension),
+                    this.magazine.getTitle(),
+                    this.magazine.getInfo(),
+                    this.dirPath,
+                    this.MAGAZINE_DOWNLOAD_VISIBILITY);
+        }
+
         //If the issue is not downloading we start the download, otherwise, do nothing.
         if (!isDownloading()) {
             //Hide download button
@@ -375,6 +378,7 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
         //TODO: Handle failures.
         switch (taskId) {
             case MAGAZINE_DOWNLOAD_TASK:
+                this.packDownloader = null;
                 //When the download task ended successfully we will start unzipping the file.
                 if (results[0] == "SUCCESS") {
                     startUnzip(results[1], this.magazine.getName());
