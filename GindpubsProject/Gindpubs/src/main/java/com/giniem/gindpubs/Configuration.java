@@ -168,4 +168,27 @@ public class Configuration {
 		}
 		return false;
 	}
+
+    public static boolean deleteDirectory(final String path) {
+        File directory = new File(path);
+
+        if (directory.exists()) {
+            File[] files = directory.listFiles();
+            if (files == null) {
+                return true;
+            }
+
+            for (File file : files) {
+                if (file.isDirectory()) {
+                    deleteDirectory(file.getPath());
+                } else {
+                    file.delete();
+                }
+            }
+        } else {
+            return false;
+        }
+
+        return (directory.delete());
+    }
 }

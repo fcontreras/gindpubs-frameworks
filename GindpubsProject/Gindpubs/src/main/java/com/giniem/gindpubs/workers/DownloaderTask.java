@@ -54,6 +54,7 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
         this.fileDescription = fileDesc;
         this.relativeDirPath = relDirPath;
         this.visibility = visibility;
+        this.downloadId = this.restoreDownloadId();
     }
 
     public long getDownloadId() {
@@ -92,6 +93,7 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
         if (null != this.dm) {
             this.dm.remove(downloadId);
             this.cancel(true);
+            this.removeDownloadId();
         }
     }
 
@@ -107,6 +109,28 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
 
     public SharedPreferences getDownloadPreferences() {
         return this.context.getSharedPreferences(GindActivity.class.getSimpleName(), Context.MODE_PRIVATE);
+    }
+
+    private void storeDownloadId() {
+        SharedPreferences preferences = context.getSharedPreferences(GindActivity.class.getSimpleName(), Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.putLong(GindActivity.DOWNLOAD_IN_PROGRESS + this.fileName, this.downloadId);
+        editor.commit();
+    }
+
+    private long restoreDownloadId() {
+        SharedPreferences preferences = context.getSharedPreferences(GindActivity.class.getSimpleName(), Context.MODE_PRIVATE);
+        long id = preferences.getLong(GindActivity.DOWNLOAD_IN_PROGRESS + this.fileName, -1L);
+
+        return id;
+    }
+
+    private void removeDownloadId() {
+        this.downloadId = -1L;
+        SharedPreferences preferences = context.getSharedPreferences(GindActivity.class.getSimpleName(), Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        editor.remove(GindActivity.DOWNLOAD_IN_PROGRESS + this.fileName);
+        editor.commit();
     }
 
     @Override
@@ -135,7 +159,12 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
         String result = "";
         try {
             request.setDestinationInExternalPublicDir(relativeDirPath, fileName);
-            downloadId = dm.enqueue(request);
+
+            if (downloadId == -1L) {
+                downloadId = dm.enqueue(request);
+
+                this.storeDownloadId();
+            }
 
             Query query = new Query();
             query.setFilterById(downloadId);
@@ -182,7 +211,6 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
             ex.printStackTrace();
         }
 
-
         return result;
     }
 
@@ -193,6 +221,7 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
 
     @Override
     protected void onPostExecute(String result) {
+        this.removeDownloadId();
         String path = (null == downloadedFile) ? "" : downloadedFile.getPath();
         mandator.postExecute(taskId, result, path);
     }

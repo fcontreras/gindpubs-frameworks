@@ -55,8 +55,8 @@ public class GindActivity extends Activity implements GindMandator {
 	public final static String BOOK_JSON_KEY = "com.giniem.gindpubs.BOOK_JSON_KEY";
 	public final static String MAGAZINE_NAME = "com.giniem.gindpubs.MAGAZINE_NAME";
     public static final String PROPERTY_REG_ID = "com.giniem.gindpubs.REGISTRATION_ID";
+    public static final String DOWNLOAD_IN_PROGRESS = "com.giniem.gindpubs.DOWNLOAD_ID";
     private static final String PROPERTY_APP_VERSION = "com.giniem.gindpubs.APP_VERSION";
-
 
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
 
@@ -497,11 +497,15 @@ public class GindActivity extends Activity implements GindMandator {
             MagazineThumb thumb = (MagazineThumb) flowLayout.getChildAt(i);
             String zipName = thumb.getMagazine().getName().concat(this.getString(R.string.package_extension));
 
-            if (this.magazineZipExists(zipName)) {
+            if (this.magazineZipExists(zipName) && !thumb.isDownloading()) {
                 Log.d(this.getClass().toString(), "Continue unzip of " + thumb.getMagazine().getName());
                 String filepath = Environment.getExternalStorageDirectory().getPath() + thumb.getDirPath() + File.separator + zipName;
 
                 thumb.startUnzip(filepath, thumb.getMagazine().getName());
+            } else if (thumb.isDownloading()) {
+
+                // We continue the download.
+                thumb.startPackageDownload();
             }
         }
     }

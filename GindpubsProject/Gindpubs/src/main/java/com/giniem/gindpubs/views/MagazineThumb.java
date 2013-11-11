@@ -110,6 +110,15 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
                 "File to show on the shelf",
                 cachePath,
                 this.THUMB_DOWNLOAD_VISIBILITY);
+        packDownloader = new DownloaderTask(this.context,
+                this,
+                this.MAGAZINE_DOWNLOAD_TASK,
+                this.magazine.getUrl(),
+                this.magazine.getName() + context.getString(R.string.package_extension),
+                this.magazine.getTitle(),
+                this.magazine.getInfo(),
+                this.dirPath,
+                this.MAGAZINE_DOWNLOAD_VISIBILITY);
 
         //Unzipper task initialization
         unzipperTask = new UnzipperTask(context, this, UNZIP_MAGAZINE_TASK);
@@ -235,7 +244,11 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
      * @return boolean true if downloading false, otherwise.
      */
     public boolean isDownloading() {
-        return this.packDownloader.isDownloading();
+        boolean result = false;
+        if (null != this.packDownloader) {
+            result = this.packDownloader.isDownloading();
+        }
+        return result;
     }
 
     /**
@@ -289,7 +302,7 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
         }
 
         //If the issue is not downloading we start the download, otherwise, do nothing.
-        if (!isDownloading()) {
+        //if (!isDownloading()) {
             //Hide download button
             findViewById(R.id.btnDownload).setVisibility(View.GONE);
 
@@ -299,7 +312,7 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
             findViewById(R.id.prgDownload).setVisibility(View.VISIBLE);
 
             packDownloader.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
-        }
+        //}
     }
 
     /**
@@ -309,6 +322,8 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
      */
 	public void startUnzip(final String filePath, final String name) {
         findViewById(R.id.btnDownload).setVisibility(View.GONE);
+        findViewById(R.id.btnArchive).setVisibility(View.GONE);
+        findViewById(R.id.btnRead).setVisibility(View.GONE);
         //Shows and set the text of progress
         ((TextView)findViewById(R.id.txtProgress)).setText(R.string.unzipping);
         findViewById(R.id.txtProgress).setVisibility(View.VISIBLE);
@@ -396,6 +411,9 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
                 //start reading the issue.
                 if (results[0] == "SUCCESS") {
                     this.enableReadArchiveActions();
+                } else {
+                    Toast.makeText(this.getContext(), "Could not extract the package. Possibly corrupted.",
+                            Toast.LENGTH_LONG).show();
                 }
                 break;
             case MAGAZINE_DELETE_TASK:
