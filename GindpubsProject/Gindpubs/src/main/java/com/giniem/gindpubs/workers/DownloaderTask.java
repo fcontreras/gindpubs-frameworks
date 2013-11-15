@@ -146,9 +146,10 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
             request.setNotificationVisibility(visibility);
         }
 
-        if (this.isOverwrite()) {
+        if (this.isOverwrite() && !this.isDownloading()) {
 
             String filepath = Environment.getExternalStorageDirectory().getPath() + relativeDirPath + File.separator + fileName;
+
             boolean result = this.fileExists(filepath);
 
             if (result) {

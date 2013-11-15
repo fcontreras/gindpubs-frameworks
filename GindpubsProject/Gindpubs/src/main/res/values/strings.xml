@@ -39,6 +39,7 @@
     <!-- General strings for the UI -->
     <string name="app_name">Gindpubs</string>
     <string name="action_settings">Settings</string>
+    <string name="headerUrl">file:///android_asset/header.html</string>
     <string name="loadingUrl">file:///android_asset/loading.html</string>
     <string name="backgroundUrl">file:///android_asset/background.html</string>
     <string name="inputDateFormat">yyyy-MM-dd hh:mm:ss</string>

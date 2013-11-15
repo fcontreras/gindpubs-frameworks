@@ -18,6 +18,8 @@ import android.provider.Settings.Secure;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
+import android.view.MotionEvent;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.WebView;
@@ -265,6 +267,29 @@ public class GindActivity extends Activity implements GindMandator {
 		webview.loadUrl(getString(R.string.loadingUrl));
 	}
 
+    private void loadHeader() {
+        WebView webview = (WebView) findViewById(R.id.headerView);
+        webview.getSettings().setJavaScriptEnabled(true);
+        //webview.getSettings().setLoadWithOverviewMode(true);
+        //webview.getSettings().setUseWideViewPort(true);
+        webview.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                return true;
+            }
+        });
+        webview.setBackgroundColor(Color.TRANSPARENT);
+        webview.setWebViewClient(new WebViewClient() {
+
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                view.loadUrl(url);
+                return true;
+            }
+        });
+        webview.loadUrl(getString(R.string.headerUrl));
+    }
+
 	public void createThumbnails(final JSONArray jsonArray) {
 		Log.d(this.getClass().getName(),
 				"Shelf json contains " + jsonArray.length() + " elements.");
@@ -272,6 +297,7 @@ public class GindActivity extends Activity implements GindMandator {
 		JSONObject json;
 		try {
 			this.setContentView(R.layout.activity_gind);
+            loadHeader();
             loadBackground();
 
             flowLayout = (FlowLayout) findViewById(R.id.thumbsContainer);
