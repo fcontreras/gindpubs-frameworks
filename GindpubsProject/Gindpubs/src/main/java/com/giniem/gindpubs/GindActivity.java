@@ -551,7 +551,6 @@ public class GindActivity extends Activity implements GindMandator {
             if (thumb.isDownloading()) {
                 downloadingThumbs.add(i);
                 downloading = true;
-                break;
             }
         }
 

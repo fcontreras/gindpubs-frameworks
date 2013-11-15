@@ -210,6 +210,10 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
         } catch (IllegalStateException ex) {
             result = "DIRECTORY_NOT_FOUND";
             ex.printStackTrace();
+        } catch (android.database.CursorIndexOutOfBoundsException ex) {
+            // This exception might be thrown when the user presses the back
+            // button and cancels the current downloads, so the index
+            // does not exist anymore.
         }
 
         return result;
