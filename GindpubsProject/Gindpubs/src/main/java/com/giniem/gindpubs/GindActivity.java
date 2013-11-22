@@ -27,12 +27,14 @@ import android.webkit.WebViewClient;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.giniem.gindpubs.R.*;
 import com.giniem.gindpubs.client.GindMandator;
 import com.giniem.gindpubs.model.BookJson;
 import com.giniem.gindpubs.model.Magazine;
 import com.giniem.gindpubs.views.FlowLayout;
 import com.giniem.gindpubs.views.MagazineThumb;
 import com.giniem.gindpubs.workers.DownloaderTask;
+import com.giniem.gindpubs.workers.GCMRegistrationWorker;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
@@ -49,8 +51,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Locale;
-
-import com.giniem.gindpubs.R.*;
 
 public class GindActivity extends Activity implements GindMandator {
 
@@ -84,6 +84,11 @@ public class GindActivity extends Activity implements GindMandator {
     // For parsing dates
     SimpleDateFormat sdfInput;
     SimpleDateFormat sdfOutput;
+
+    // Used in device registration process.
+    public static String userAccount = "";
+
+    private boolean isLoading = true;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -109,7 +114,6 @@ public class GindActivity extends Activity implements GindMandator {
             //Getting the user main account
 			AccountManager manager = AccountManager.get(this);
 			Account[] accounts = manager.getAccountsByType("com.google");
-            String userAccount = "";
 
             // If we can't get a google account, then we will have to use
             // any account the user have on the phone.
@@ -131,12 +135,14 @@ public class GindActivity extends Activity implements GindMandator {
 
             loadingScreen();
             if (checkPlayServices()) {
+                Log.d(this.getClass().getName(), "Google Play Services enabled.");
                 gcm = GoogleCloudMessaging.getInstance(this);
                 registrationId = getRegistrationId(this.getApplicationContext());
 
+                Log.d(this.getClass().getName(), "Obtained registration ID: " + registrationId);
+
                 if (registrationId.isEmpty()) {
-                    // TODO: Register in background
-                    // registerInBackground();
+                    registerInBackground();
                 }
             } else {
                 Log.e(this.getClass().toString(), "No valid Google Play Services APK found.");
@@ -214,6 +220,12 @@ public class GindActivity extends Activity implements GindMandator {
             // should never happen
             throw new RuntimeException("Could not get package name: " + e);
         }
+    }
+
+    private void registerInBackground() {
+        GCMRegistrationWorker registrationWorker = new GCMRegistrationWorker(this.getApplicationContext(),
+                this.gcm, this.REGISTRATION_TASK, this);
+        registrationWorker.execute();
     }
 
     /**
@@ -543,31 +555,34 @@ public class GindActivity extends Activity implements GindMandator {
 
     @Override
     public void onBackPressed() {
-
-        boolean downloading = false;
-        final ArrayList<Integer> downloadingThumbs = new ArrayList<Integer>();
-        for (int i = 0; i < flowLayout.getChildCount(); i++) {
-            MagazineThumb thumb = (MagazineThumb) flowLayout.getChildAt(i);
-            if (thumb.isDownloading()) {
-                downloadingThumbs.add(i);
-                downloading = true;
+        if (!this.isLoading) {
+            boolean downloading = false;
+            final ArrayList<Integer> downloadingThumbs = new ArrayList<Integer>();
+            for (int i = 0; i < flowLayout.getChildCount(); i++) {
+                MagazineThumb thumb = (MagazineThumb) flowLayout.getChildAt(i);
+                if (thumb.isDownloading()) {
+                    downloadingThumbs.add(i);
+                    downloading = true;
+                }
             }
-        }
 
-        if (downloading) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder
-                    .setTitle(this.getString(R.string.exit))
-                    .setMessage(this.getString(R.string.closing_app))
-                    .setPositiveButton(this.getString(R.string.yes), new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
+            if (downloading) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder
+                        .setTitle(this.getString(R.string.exit))
+                        .setMessage(this.getString(R.string.closing_app))
+                        .setPositiveButton(this.getString(R.string.yes), new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
 
-                            GindActivity.this.terminateDownloads(downloadingThumbs);
-                            GindActivity.super.onBackPressed();
-                        }
-                    })
-                    .setNegativeButton(this.getString(R.string.no), null)
-                    .show();
+                                GindActivity.this.terminateDownloads(downloadingThumbs);
+                                GindActivity.super.onBackPressed();
+                            }
+                        })
+                        .setNegativeButton(this.getString(R.string.no), null)
+                        .show();
+            } else {
+                super.onBackPressed();
+            }
         } else {
             super.onBackPressed();
         }
