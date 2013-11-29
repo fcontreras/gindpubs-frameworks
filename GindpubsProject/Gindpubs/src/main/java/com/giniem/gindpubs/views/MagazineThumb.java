@@ -321,6 +321,12 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
      * @param name the name of the file to unzip.
      */
 	public void startUnzip(final String filePath, final String name) {
+
+        //Make sure the unzipper gets initialized
+        if (null == this.unzipperTask) {
+            this.unzipperTask = new UnzipperTask(context, this, UNZIP_MAGAZINE_TASK);
+        }
+
         findViewById(R.id.btnDownload).setVisibility(View.GONE);
         findViewById(R.id.btnArchive).setVisibility(View.GONE);
         findViewById(R.id.btnRead).setVisibility(View.GONE);
@@ -401,6 +407,7 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
                 break;
             case THUMB_DOWNLOAD_TASK:
                 //If the thumbnail download ended successfully we will render the cover.
+                this.unzipperTask = null;
                 if (results[0] == "SUCCESS") {
                     this.renderCover(Configuration.getAbsoluteCacheDir(
                             this.getContext()) + File.separator + this.magazine.getName());
