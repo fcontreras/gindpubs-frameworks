@@ -173,7 +173,7 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
             public void onClick(View v) {
                 if (readable) {
                     readIssue();
-                } else {
+                } else if (!MagazineThumb.this.isDownloading()) {
                     startPackageDownload();
                 }
             }
