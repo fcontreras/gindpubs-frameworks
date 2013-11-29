@@ -407,7 +407,6 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
                 break;
             case THUMB_DOWNLOAD_TASK:
                 //If the thumbnail download ended successfully we will render the cover.
-                this.unzipperTask = null;
                 if (results[0] == "SUCCESS") {
                     this.renderCover(Configuration.getAbsoluteCacheDir(
                             this.getContext()) + File.separator + this.magazine.getName());
@@ -416,6 +415,7 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
             case UNZIP_MAGAZINE_TASK:
                 //If the Unzip tasks ended successfully we will update the UI to let the user
                 //start reading the issue.
+                this.unzipperTask = null;
                 if (results[0] == "SUCCESS") {
                     this.enableReadArchiveActions();
                 } else {
