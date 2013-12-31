@@ -38,7 +38,7 @@ public class WebViewFragment extends Fragment {
         //Enable javascript
 		webView.getSettings().setJavaScriptEnabled(true);
         //Add zoom controls
-        webView.getSettings().setBuiltInZoomControls(true);
+        webView.getSettings().setBuiltInZoomControls(false);
         //Set zoom enabled/disabled
         webView.getSettings().setSupportZoom(true);
         //Support zoom like normal browsers
