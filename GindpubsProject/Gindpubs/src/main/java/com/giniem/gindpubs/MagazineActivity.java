@@ -160,14 +160,6 @@ public class MagazineActivity extends FragmentActivity {
                 } else {
                     try {
                         URL url = new URL(stringUrl);
-                        Log.d(">>>URL_DATA", "protocol = " + url.getProtocol());
-                        Log.d(">>>URL_DATA", "authority = " + url.getAuthority());
-                        Log.d(">>>URL_DATA", "host = " + url.getHost());
-                        Log.d(">>>URL_DATA", "port = " + url.getPort());
-                        Log.d(">>>URL_DATA", "path = " + url.getPath());
-                        Log.d(">>>URL_DATA", "query = " + url.getQuery());
-                        Log.d(">>>URL_DATA", "filename = " + url.getFile());
-                        Log.d(">>>URL_DATA", "ref = " + url.getRef());
 
                         // We try to remove the referrer string to avoid passing it to the server in case the URL is an external link.
                         String referrer = "";

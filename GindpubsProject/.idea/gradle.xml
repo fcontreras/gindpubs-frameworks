@@ -3,12 +3,8 @@
   <component name="GradleSettings">
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
-<<<<<<< HEAD
         <option name="distributionType" value="DEFAULT_WRAPPED" />
         <option name="externalProjectPath" value="C:\" />
-=======
-        <option name="externalProjectPath" value="C:\apps\GindpubsProject" />
->>>>>>> 93f6c224b7e3d0c580ad6fa07b5e14a681078f28
       </GradleProjectSettings>
     </option>
   </component>

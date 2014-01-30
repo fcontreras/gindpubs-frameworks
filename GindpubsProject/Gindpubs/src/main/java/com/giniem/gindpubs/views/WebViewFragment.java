@@ -78,14 +78,6 @@ public class WebViewFragment extends Fragment {
                 } else {
                     try {
                         URL url = new URL(stringUrl);
-                        Log.d(">>>URL_DATA", "protocol = " + url.getProtocol());
-                        Log.d(">>>URL_DATA", "authority = " + url.getAuthority());
-                        Log.d(">>>URL_DATA", "host = " + url.getHost());
-                        Log.d(">>>URL_DATA", "port = " + url.getPort());
-                        Log.d(">>>URL_DATA", "path = " + url.getPath());
-                        Log.d(">>>URL_DATA", "query = " + url.getQuery());
-                        Log.d(">>>URL_DATA", "filename = " + url.getFile());
-                        Log.d(">>>URL_DATA", "ref = " + url.getRef());
 
                         // We try to remove the referrer string to avoid passing it to the server in case the URL is an external link.
                         String referrer = "";
@@ -149,8 +141,6 @@ public class WebViewFragment extends Fragment {
         });
         webView.loadUrl(args.getString(ARG_OBJECT));
 
-		//this.handleUrlLoading(args.getString(ARG_OBJECT));
-
 		return rootView;
 	}
 
@@ -175,77 +165,6 @@ public class WebViewFragment extends Fragment {
 
     public CustomWebView getWebView() {
         return this.webView;
-    }
-
-    private void handleUrlLoading(String stringUrl) {
-        Log.d(">>>URL_DATA", "RAW STRING URL = " + stringUrl);
-        // mailto links will be handled by the OS.
-        if (stringUrl.startsWith("mailto:")) {
-            Uri uri = Uri.parse(stringUrl);
-            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-            startActivity(intent);
-        } else {
-            try {
-                URL url = new URL(stringUrl);
-
-                // We try to remove the referrer string to avoid passing it to the server in case the URL is an external link.
-                String referrer = "";
-                if (url.getQuery() != null) {
-                    Map<String, String> variables = Configuration.splitUrlQueryString(url);
-                    String finalQueryString = "";
-                    for (Map.Entry<String, String> entry : variables.entrySet()) {
-                        if (entry.getKey().equals("referrer")) {
-                            referrer = entry.getValue();
-                        } else {
-                            finalQueryString += entry.getKey() + "=" + entry.getValue() + "&";
-                        }
-                    }
-                    if (!finalQueryString.isEmpty()) {
-                        finalQueryString = "?" + finalQueryString.substring(0, finalQueryString.length() - 1);
-                    }
-                    stringUrl = stringUrl.replace("?" + url.getQuery(), finalQueryString);
-                }
-                // Aaaaand that was the process of removing the referrer from the query string.
-
-                if (!url.getProtocol().equals("file")) {
-                    if (referrer == WebViewFragment.this.getActivity().getApplicationContext().getString(R.string.url_external_referrer)) {
-                        Uri uri = Uri.parse(stringUrl);
-                        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-                        startActivity(intent);
-                    } else {
-
-                        // Tell the webview that we are not going to handle the URL override.
-                        webView.loadUrl(stringUrl);
-                    }
-                } else {
-                    Log.d(">>>URL_DATA", "FINAL INTERNAL URL = " + stringUrl);
-                    Log.d(">>>URL_DATA", "FINAL INTERNAL PATH = " + url.getPath());
-                    stringUrl = url.getPath().substring(url.getPath().lastIndexOf("/") + 1);
-                    Log.d(">>>URL_DATA", "MODIFIED INTERNAL URL = " + stringUrl);
-
-                    int index = ((MagazineActivity) parent).getJsonBook().getContents().indexOf(stringUrl);
-
-                    if (index != -1) {
-                        Log.d(this.getClass().toString(), "Index to load: " + index
-                                + ", page: " + stringUrl);
-
-                        ((MagazineActivity) parent).getPager().setCurrentItem(index);
-                        //view.setVisibility(View.GONE);
-                    } else {
-
-                        // If the file DOES NOT exist, we won't load it.
-
-                        File htmlFile = new File(url.getPath());
-                        if (htmlFile.exists()) {
-                            webView.loadUrl(stringUrl);
-                        }
-                    }
-                }
-            } catch (MalformedURLException ex) {
-                Log.d(">>>URL_DATA", ex.getMessage());
-            } catch (UnsupportedEncodingException ex) {
-            }
-        }
     }
 
 	class CustomChromeClient extends WebChromeClient {

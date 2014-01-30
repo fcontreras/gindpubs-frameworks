@@ -174,7 +174,6 @@ public class Configuration {
 		return false;
 	}
 
-<<<<<<< HEAD
     public static Map<String, String> splitUrlQueryString(URL url) throws UnsupportedEncodingException {
         Map<String, String> query_pairs = new LinkedHashMap<String, String>();
         String query = url.getQuery();
@@ -184,7 +183,7 @@ public class Configuration {
             query_pairs.put(URLDecoder.decode(pair.substring(0, idx), "UTF-8"), URLDecoder.decode(pair.substring(idx + 1), "UTF-8"));
         }
         return query_pairs;
-=======
+    }
     public static boolean deleteDirectory(final String path) {
         File directory = new File(path);
 
@@ -206,6 +205,5 @@ public class Configuration {
         }
 
         return (directory.delete());
->>>>>>> 93f6c224b7e3d0c580ad6fa07b5e14a681078f28
     }
 }
