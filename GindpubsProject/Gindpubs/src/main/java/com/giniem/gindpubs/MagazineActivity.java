@@ -30,6 +30,10 @@ import com.giniem.gindpubs.views.WebViewFragment;
 import com.giniem.gindpubs.views.WebViewFragmentPagerAdapter;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Map;
 
 public class MagazineActivity extends FragmentActivity {
 
@@ -38,6 +42,15 @@ public class MagazineActivity extends FragmentActivity {
 	private GestureDetectorCompat gestureDetector;
 	private WebViewFragmentPagerAdapter webViewPagerAdapter;
 	private CustomWebViewPager pager;
+    private BookJson jsonBook;
+
+    public BookJson getJsonBook() {
+        return this.jsonBook;
+    }
+
+    public CustomWebViewPager getPager() {
+        return this.pager;
+    }
 
     @Override
     protected void onDestroy() {
@@ -69,11 +82,11 @@ public class MagazineActivity extends FragmentActivity {
 		Intent intent = getIntent();
 
 		try {
-			BookJson book = new BookJson();
-			book.setMagazineName(intent
+			jsonBook = new BookJson();
+            jsonBook.setMagazineName(intent
 					.getStringExtra(GindActivity.MAGAZINE_NAME));
-			book.fromJson(intent.getStringExtra(GindActivity.BOOK_JSON_KEY));
-			this.setPagerView(book);
+            jsonBook.fromJson(intent.getStringExtra(GindActivity.BOOK_JSON_KEY));
+			this.setPagerView(jsonBook);
 
 			gestureDetector = new GestureDetectorCompat(this,
 					new MyGestureListener());
@@ -137,21 +150,75 @@ public class MagazineActivity extends FragmentActivity {
 		viewIndex.setWebViewClient(new WebViewClient() {
 
 			@Override
-			public boolean shouldOverrideUrlLoading(WebView view, String url) {
-				if (!url.startsWith("file://")) {
-					Uri uri = Uri.parse(url);
-					Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-					startActivity(intent);
-				} else {
-					url = url.substring(url.lastIndexOf("/") + 1);
-					int index = book.getContents().indexOf(url);
+			public boolean shouldOverrideUrlLoading(WebView view, String stringUrl) {
 
-					Log.d(this.getClass().toString(), "Index to load: " + index
-							+ ", page: " + url);
+                // mailto links will be handled by the OS.
+                if (stringUrl.startsWith("mailto:")) {
+                    Uri uri = Uri.parse(stringUrl);
+                    Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                    startActivity(intent);
+                } else {
+                    try {
+                        URL url = new URL(stringUrl);
+                        Log.d(">>>URL_DATA", "protocol = " + url.getProtocol());
+                        Log.d(">>>URL_DATA", "authority = " + url.getAuthority());
+                        Log.d(">>>URL_DATA", "host = " + url.getHost());
+                        Log.d(">>>URL_DATA", "port = " + url.getPort());
+                        Log.d(">>>URL_DATA", "path = " + url.getPath());
+                        Log.d(">>>URL_DATA", "query = " + url.getQuery());
+                        Log.d(">>>URL_DATA", "filename = " + url.getFile());
+                        Log.d(">>>URL_DATA", "ref = " + url.getRef());
 
-					pager.setCurrentItem(index);
-					view.setVisibility(View.GONE);
-				}
+                        // We try to remove the referrer string to avoid passing it to the server in case the URL is an external link.
+                        String referrer = "";
+                        if (url.getQuery() != null) {
+                            Map<String, String> variables = Configuration.splitUrlQueryString(url);
+                            String finalQueryString = "";
+                            for (Map.Entry<String, String> entry : variables.entrySet()) {
+                                if (entry.getKey().equals("referrer")) {
+                                    referrer = entry.getValue();
+                                } else {
+                                    finalQueryString += entry.getKey() + "=" + entry.getValue() + "&";
+                                }
+                            }
+                            if (!finalQueryString.isEmpty()) {
+                                finalQueryString = "?" + finalQueryString.substring(0, finalQueryString.length() - 1);
+                            }
+                            stringUrl = stringUrl.replace("?" + url.getQuery(), finalQueryString);
+                        }
+                        // Aaaaand that was the process of removing the referrer from the query string.
+
+                        if (!url.getProtocol().equals("file")) {
+                            Uri uri = Uri.parse(stringUrl);
+                            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                            startActivity(intent);
+                        } else {
+                            Log.d(">>>URL_DATA", "FINAL INTERNAL URL = " + stringUrl);
+                            stringUrl = url.getPath().substring(url.getPath().lastIndexOf("/") + 1);
+
+                            int index = book.getContents().indexOf(stringUrl);
+
+                            if (index != -1) {
+                                Log.d(this.getClass().toString(), "Index to load: " + index
+                                        + ", page: " + stringUrl);
+
+                                pager.setCurrentItem(index);
+                                view.setVisibility(View.GONE);
+                            } else {
+
+                                // If the file DOES NOT exist, we won't load it.
+                                File htmlFile = new File(url.getPath());
+                                if (htmlFile.exists()) {
+                                    return false;
+                                }
+                            }
+                        }
+                    } catch (MalformedURLException ex) {
+                        Log.d(">>>URL_DATA", ex.getMessage());
+                    } catch (UnsupportedEncodingException ex) {
+                    }
+                }
+
 				return true;
 			}
 		});

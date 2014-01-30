@@ -19,6 +19,12 @@
     <string name="purchases_url">http://bakerframework.com/demo/shelf.json</string>
     <string name="post_apns_token_url">http://bakerframework.com/demo/shelf.json</string>
 
+    <!-- Referrer strings to use with links to open them in the device's internet browser or in the same view from gindpubs
+        For more information about links: https://github.com/bakerframework/baker/wiki/Managing-links-and-urls
+    -->
+    <string name="url_gindpubs_referrer">gindpubs</string>
+    <string name="url_external_referrer">external</string>
+
     <!-- Path to store the cache for the thumbnails inside the system's cache directory. -->
     <string name="thumbnails">thumbnails</string>
 
