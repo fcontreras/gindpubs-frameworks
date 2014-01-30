@@ -3,7 +3,6 @@ package com.giniem.gindpubs;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Intent;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -214,9 +213,10 @@ public class MagazineActivity extends FragmentActivity {
 				return true;
 			}
 		});
-        viewIndex.setBackgroundColor(Color.TRANSPARENT);
 		viewIndex.loadUrl(path + book.getMagazineName() + File.separator
 				+ "index.html");
+        viewIndex.setBackgroundColor(0x00000000);
+        viewIndex.setLayerType(WebView.LAYER_TYPE_SOFTWARE, null);
 	}
 
 	@Override
