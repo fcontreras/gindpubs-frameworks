@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.giniem.gindpubs.Configuration;
 import com.giniem.gindpubs.client.GindMandator;
 
 import java.io.BufferedInputStream;
@@ -42,13 +43,17 @@ public class UnzipperTask extends AsyncTask<String, Long, String> {
         try {
             String zipEntryName;
 
-            Log.d(this.getClass().toString(),"Started unzip process for file " + params[0]);
+            Log.d(this.getClass().getName(),"Started unzip process for file " + params[0]);
 
             // First we create a directory to hold the unzipped files.
             String workingDir = params[0].substring(0, params[0].lastIndexOf("/")) + File.separator;
             File containerDir = new File(workingDir + params[1]);
 
-            Log.e(this.getClass().getName(), "Magazine Directory: " + containerDir);
+            Log.d(this.getClass().getName(), "Magazine Directory: " + containerDir);
+
+            if (containerDir.exists()) {
+                Configuration.deleteDirectory(containerDir.getPath());
+            }
 
             if (containerDir.mkdirs()) {
                 input = new FileInputStream(params[0]);
@@ -79,6 +84,10 @@ public class UnzipperTask extends AsyncTask<String, Long, String> {
                 }
 
                 zipInput.close();
+
+                // Delete the zip file
+                File zipFile = new File(params[0]);
+                zipFile.delete();
             } else {
                 Log.e(this.getClass().getName(), "Could not create the package directory");
                 //TODO: Notify the user
@@ -89,7 +98,7 @@ public class UnzipperTask extends AsyncTask<String, Long, String> {
             return null;
         }
 
-        Log.d(this.getClass().toString(), "Unzip process finished successfully.");
+        Log.d(this.getClass().getName(), "Unzip process finished successfully.");
 		return "SUCCESS";
 	}
 

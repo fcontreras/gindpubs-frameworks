@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
@@ -29,6 +30,9 @@ import com.giniem.gindpubs.workers.MagazineDeleteTask;
 import com.giniem.gindpubs.workers.UnzipperTask;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 
 public class MagazineThumb extends LinearLayout implements GindMandator {
@@ -78,29 +82,23 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
     private final int UNZIP_MAGAZINE_TASK = 2;
     private final int MAGAZINE_DELETE_TASK = 3;
 
+    private Context context;
+
     /**
      * Creates an instance of MagazineThumb to with an activity context.
      * @param context the parent Activity context.
      */
 	public MagazineThumb(Context context, Magazine mag) {
 		super(context);
+
+        this.context = context;
+
         //Paths to the application files
         dirPath = Configuration.getApplicationRelativeMagazinesPath(context);
         cachePath = Configuration.getCacheDirectory(context);
 
         //Set the magazine model to the thumb instance.
         this.magazine = mag;
-
-        //Package downloader task initialization.
-        packDownloader = new DownloaderTask(context,
-                this,
-                this.MAGAZINE_DOWNLOAD_TASK,
-                this.magazine.getUrl(),
-                this.magazine.getName() + ".zip",
-                this.magazine.getTitle(),
-                this.magazine.getInfo(),
-                this.dirPath,
-                this.MAGAZINE_DOWNLOAD_VISIBILITY);
 
         //Thumbnail downloader task initialization.
         thumbDownloader = new DownloaderTask(context,
@@ -112,12 +110,25 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
                 "File to show on the shelf",
                 cachePath,
                 this.THUMB_DOWNLOAD_VISIBILITY);
+        packDownloader = new DownloaderTask(this.context,
+                this,
+                this.MAGAZINE_DOWNLOAD_TASK,
+                this.magazine.getUrl(),
+                this.magazine.getName() + context.getString(R.string.package_extension),
+                this.magazine.getTitle(),
+                this.magazine.getInfo(),
+                this.dirPath,
+                this.MAGAZINE_DOWNLOAD_VISIBILITY);
 
         //Unzipper task initialization
         unzipperTask = new UnzipperTask(context, this, UNZIP_MAGAZINE_TASK);
 
         //Logging initialization
         Log.d(this.getClass().getName(), "Magazines relative dir: " + dirPath);
+    }
+
+    public String getDirPath() {
+        return this.dirPath;
     }
 
     /**
@@ -162,7 +173,7 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
             public void onClick(View v) {
                 if (readable) {
                     readIssue();
-                } else {
+                } else if (!MagazineThumb.this.isDownloading()) {
                     startPackageDownload();
                 }
             }
@@ -233,7 +244,11 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
      * @return boolean true if downloading false, otherwise.
      */
     public boolean isDownloading() {
-        return this.packDownloader.isDownloading();
+        boolean result = false;
+        if (null != this.packDownloader) {
+            result = this.packDownloader.isDownloading();
+        }
+        return result;
     }
 
     /**
@@ -272,8 +287,22 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
      * Starts the download of an issue, hides the download controls and shows the progress controls.
      */
     public void startPackageDownload() {
+
+        if (null == this.packDownloader) {
+            //Package downloader task initialization.
+            packDownloader = new DownloaderTask(this.context,
+                    this,
+                    this.MAGAZINE_DOWNLOAD_TASK,
+                    this.magazine.getUrl(),
+                    this.magazine.getName() + context.getString(R.string.package_extension),
+                    this.magazine.getTitle(),
+                    this.magazine.getInfo(),
+                    this.dirPath,
+                    this.MAGAZINE_DOWNLOAD_VISIBILITY);
+        }
+
         //If the issue is not downloading we start the download, otherwise, do nothing.
-        if (!isDownloading()) {
+        //if (!isDownloading()) {
             //Hide download button
             findViewById(R.id.btnDownload).setVisibility(View.GONE);
 
@@ -283,7 +312,7 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
             findViewById(R.id.prgDownload).setVisibility(View.VISIBLE);
 
             packDownloader.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
-        }
+        //}
     }
 
     /**
@@ -291,7 +320,16 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
      * @param filePath the path where the file to unzip is located.
      * @param name the name of the file to unzip.
      */
-	private void startUnzip(final String filePath, final String name) {
+	public void startUnzip(final String filePath, final String name) {
+
+        //Make sure the unzipper gets initialized
+        if (null == this.unzipperTask) {
+            this.unzipperTask = new UnzipperTask(context, this, UNZIP_MAGAZINE_TASK);
+        }
+
+        findViewById(R.id.btnDownload).setVisibility(View.GONE);
+        findViewById(R.id.btnArchive).setVisibility(View.GONE);
+        findViewById(R.id.btnRead).setVisibility(View.GONE);
         //Shows and set the text of progress
         ((TextView)findViewById(R.id.txtProgress)).setText(R.string.unzipping);
         findViewById(R.id.txtProgress).setVisibility(View.VISIBLE);
@@ -361,6 +399,7 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
         //TODO: Handle failures.
         switch (taskId) {
             case MAGAZINE_DOWNLOAD_TASK:
+                this.packDownloader = null;
                 //When the download task ended successfully we will start unzipping the file.
                 if (results[0] == "SUCCESS") {
                     startUnzip(results[1], this.magazine.getName());
@@ -376,8 +415,12 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
             case UNZIP_MAGAZINE_TASK:
                 //If the Unzip tasks ended successfully we will update the UI to let the user
                 //start reading the issue.
+                this.unzipperTask = null;
                 if (results[0] == "SUCCESS") {
                     this.enableReadArchiveActions();
+                } else {
+                    Toast.makeText(this.getContext(), "Could not extract the package. Possibly corrupted.",
+                            Toast.LENGTH_LONG).show();
                 }
                 break;
             case MAGAZINE_DELETE_TASK:

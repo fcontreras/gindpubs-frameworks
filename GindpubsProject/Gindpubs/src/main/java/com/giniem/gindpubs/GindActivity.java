@@ -13,10 +13,13 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.Settings.Secure;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
+import android.view.MotionEvent;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.WebView;
@@ -24,12 +27,14 @@ import android.webkit.WebViewClient;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.giniem.gindpubs.R.*;
 import com.giniem.gindpubs.client.GindMandator;
 import com.giniem.gindpubs.model.BookJson;
 import com.giniem.gindpubs.model.Magazine;
 import com.giniem.gindpubs.views.FlowLayout;
 import com.giniem.gindpubs.views.MagazineThumb;
 import com.giniem.gindpubs.workers.DownloaderTask;
+import com.giniem.gindpubs.workers.GCMRegistrationWorker;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
@@ -51,6 +56,10 @@ public class GindActivity extends Activity implements GindMandator {
 
 	public final static String BOOK_JSON_KEY = "com.giniem.gindpubs.BOOK_JSON_KEY";
 	public final static String MAGAZINE_NAME = "com.giniem.gindpubs.MAGAZINE_NAME";
+    public static final String PROPERTY_REG_ID = "com.giniem.gindpubs.REGISTRATION_ID";
+    public static final String DOWNLOAD_IN_PROGRESS = "com.giniem.gindpubs.DOWNLOAD_ID";
+    private static final String PROPERTY_APP_VERSION = "com.giniem.gindpubs.APP_VERSION";
+
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
 
     //Shelf file download properties
@@ -68,8 +77,6 @@ public class GindActivity extends Activity implements GindMandator {
     // For Google Cloud Messaging
     private GoogleCloudMessaging gcm;
     private String registrationId;
-    public static final String PROPERTY_REG_ID = "registration_id";
-    private static final String PROPERTY_APP_VERSION = "appVersion";
 
     // Used to auto-start download of last content if a notification is received.
     private boolean startDownload = false;
@@ -77,6 +84,11 @@ public class GindActivity extends Activity implements GindMandator {
     // For parsing dates
     SimpleDateFormat sdfInput;
     SimpleDateFormat sdfOutput;
+
+    // Used in device registration process.
+    public static String userAccount = "";
+
+    private boolean isLoading = true;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -102,7 +114,6 @@ public class GindActivity extends Activity implements GindMandator {
             //Getting the user main account
 			AccountManager manager = AccountManager.get(this);
 			Account[] accounts = manager.getAccountsByType("com.google");
-            String userAccount = "";
 
             // If we can't get a google account, then we will have to use
             // any account the user have on the phone.
@@ -124,12 +135,14 @@ public class GindActivity extends Activity implements GindMandator {
 
             loadingScreen();
             if (checkPlayServices()) {
+                Log.d(this.getClass().getName(), "Google Play Services enabled.");
                 gcm = GoogleCloudMessaging.getInstance(this);
                 registrationId = getRegistrationId(this.getApplicationContext());
 
+                Log.d(this.getClass().getName(), "Obtained registration ID: " + registrationId);
+
                 if (registrationId.isEmpty()) {
-                    // TODO: Register in background
-                    // registerInBackground();
+                    registerInBackground();
                 }
             } else {
                 Log.e(this.getClass().toString(), "No valid Google Play Services APK found.");
@@ -209,6 +222,12 @@ public class GindActivity extends Activity implements GindMandator {
         }
     }
 
+    private void registerInBackground() {
+        GCMRegistrationWorker registrationWorker = new GCMRegistrationWorker(this.getApplicationContext(),
+                this.gcm, this.REGISTRATION_TASK, this);
+        registrationWorker.execute();
+    }
+
     /**
      * @return Application's {@code SharedPreferences}.
      */
@@ -260,6 +279,29 @@ public class GindActivity extends Activity implements GindMandator {
 		webview.loadUrl(getString(R.string.loadingUrl));
 	}
 
+    private void loadHeader() {
+        WebView webview = (WebView) findViewById(R.id.headerView);
+        webview.getSettings().setJavaScriptEnabled(true);
+        //webview.getSettings().setLoadWithOverviewMode(true);
+        //webview.getSettings().setUseWideViewPort(true);
+        webview.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                return true;
+            }
+        });
+        webview.setBackgroundColor(Color.TRANSPARENT);
+        webview.setWebViewClient(new WebViewClient() {
+
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                view.loadUrl(url);
+                return true;
+            }
+        });
+        webview.loadUrl(getString(R.string.headerUrl));
+    }
+
 	public void createThumbnails(final JSONArray jsonArray) {
 		Log.d(this.getClass().getName(),
 				"Shelf json contains " + jsonArray.length() + " elements.");
@@ -267,6 +309,7 @@ public class GindActivity extends Activity implements GindMandator {
 		JSONObject json;
 		try {
 			this.setContentView(R.layout.activity_gind);
+            loadHeader();
             loadBackground();
 
             flowLayout = (FlowLayout) findViewById(R.id.thumbsContainer);
@@ -325,15 +368,40 @@ public class GindActivity extends Activity implements GindMandator {
 		}
 	}
 
+    private boolean magazineDirExists(final String name) {
+        boolean result = false;
+
+        File magazine = new File(Configuration.getDiskDir(this).getPath()
+                + File.separator + name);
+        result = magazine.exists() && magazine.isDirectory();
+
+        return result;
+    }
+
 	private boolean magazineExists(final String name) {
 		boolean result = false;
 
-		File magazine = new File(Configuration.getDiskDir(this).getPath()
+		File magazineDir = new File(Configuration.getDiskDir(this).getPath()
 				+ File.separator + name);
-		result = magazine.exists() && magazine.isDirectory();
+		result = magazineDir.exists() && magazineDir.isDirectory();
+
+        if (result) {
+            result = (new File(magazineDir.getPath() + File.separator + this.getString(R.string.book)))
+                    .exists();
+        }
 
 		return result;
 	}
+
+    private boolean magazineZipExists(final String name) {
+        boolean result = false;
+
+        File magazine = new File(Configuration.getDiskDir(this).getPath()
+                + File.separator + name);
+        result = magazine.exists() && !magazine.isDirectory();
+
+        return result;
+    }
 
     private void readShelf(final String path) {
         try {
@@ -356,6 +424,7 @@ public class GindActivity extends Activity implements GindMandator {
             if (this.startDownload) {
                 this.startDownloadLastContent(json);
             }
+            this.unzipPendingPackages();
         } catch (Exception e) {
             Log.e(this.getClass().getName(), "Upss, we colapsed.. :( "
                     + e.getMessage());
@@ -388,6 +457,10 @@ public class GindActivity extends Activity implements GindMandator {
 
                 if (taskStatus.equals("SUCCESS")) {
                     this.readShelf(filePath);
+                } else if ("DIRECTORY_NOT_FOUND".equals(taskStatus) && "".equals(filePath)) {
+                    Toast.makeText(this, "Please insert an SD card to use the app.",
+                            Toast.LENGTH_LONG).show();
+                    finish();
                 }
                 break;
             case REGISTRATION_TASK:
@@ -457,54 +530,59 @@ public class GindActivity extends Activity implements GindMandator {
         }
     }
 
-    @Override
-    public void onStop() {
-        super.onStop();
-
-        boolean downloading = false;
-        final ArrayList<Integer> downloadingThumbs = new ArrayList<Integer>();
+    private void unzipPendingPackages() {
         for (int i = 0; i < flowLayout.getChildCount(); i++) {
             MagazineThumb thumb = (MagazineThumb) flowLayout.getChildAt(i);
-            if (thumb.isDownloading()) {
-                downloadingThumbs.add(i);
-                downloading = true;
-                break;
-            }
-        }
+            String zipName = thumb.getMagazine().getName().concat(this.getString(R.string.package_extension));
 
-        if (downloading) {
-            GindActivity.this.terminateDownloads(downloadingThumbs);
+            if (this.magazineZipExists(zipName) && !thumb.isDownloading()) {
+                Log.d(this.getClass().toString(), "Continue unzip of " + thumb.getMagazine().getName());
+                String filepath = Environment.getExternalStorageDirectory().getPath() + thumb.getDirPath() + File.separator + zipName;
+
+                thumb.startUnzip(filepath, thumb.getMagazine().getName());
+            } else if (thumb.isDownloading()) {
+
+                // We continue the download.
+                thumb.startPackageDownload();
+            }
         }
     }
 
     @Override
+    public void onStop() {
+        super.onStop();
+    }
+
+    @Override
     public void onBackPressed() {
-
-        boolean downloading = false;
-        final ArrayList<Integer> downloadingThumbs = new ArrayList<Integer>();
-        for (int i = 0; i < flowLayout.getChildCount(); i++) {
-            MagazineThumb thumb = (MagazineThumb) flowLayout.getChildAt(i);
-            if (thumb.isDownloading()) {
-                downloadingThumbs.add(i);
-                downloading = true;
-                break;
+        if (!this.isLoading) {
+            boolean downloading = false;
+            final ArrayList<Integer> downloadingThumbs = new ArrayList<Integer>();
+            for (int i = 0; i < flowLayout.getChildCount(); i++) {
+                MagazineThumb thumb = (MagazineThumb) flowLayout.getChildAt(i);
+                if (thumb.isDownloading()) {
+                    downloadingThumbs.add(i);
+                    downloading = true;
+                }
             }
-        }
 
-        if (downloading) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder
-                    .setTitle(this.getString(R.string.exit))
-                    .setMessage(this.getString(R.string.closing_app))
-                    .setPositiveButton(this.getString(R.string.yes), new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
+            if (downloading) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder
+                        .setTitle(this.getString(R.string.exit))
+                        .setMessage(this.getString(R.string.closing_app))
+                        .setPositiveButton(this.getString(R.string.yes), new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
 
-                            GindActivity.this.terminateDownloads(downloadingThumbs);
-                            GindActivity.super.onBackPressed();
-                        }
-                    })
-                    .setNegativeButton(this.getString(R.string.no), null)
-                    .show();
+                                GindActivity.this.terminateDownloads(downloadingThumbs);
+                                GindActivity.super.onBackPressed();
+                            }
+                        })
+                        .setNegativeButton(this.getString(R.string.no), null)
+                        .show();
+            } else {
+                super.onBackPressed();
+            }
         } else {
             super.onBackPressed();
         }

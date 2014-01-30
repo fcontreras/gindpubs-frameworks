@@ -32,7 +32,7 @@ public class MagazineDeleteTask extends AsyncTask<String, Long, String> {
                 + Configuration.getApplicationRelativeMagazinesPath(this.context)
                 + File.separator + params[0];
 
-        if (this.deleteDirectory(filepath)) {
+        if (Configuration.deleteDirectory(filepath)) {
             result = "SUCCESS";
             Log.d(this.getClass().toString(), "Delete process finished successfully.");
         } else {
@@ -40,29 +40,6 @@ public class MagazineDeleteTask extends AsyncTask<String, Long, String> {
         }
 
         return result;
-    }
-
-    private boolean deleteDirectory(final String path) {
-        File directory = new File(path);
-
-        if (directory.exists()) {
-            File[] files = directory.listFiles();
-            if (files == null) {
-                return true;
-            }
-
-            for (File file : files) {
-                if (file.isDirectory()) {
-                    this.deleteDirectory(file.getPath());
-                } else {
-                    file.delete();
-                }
-            }
-        } else {
-            return false;
-        }
-
-        return (directory.delete());
     }
 
     @Override
