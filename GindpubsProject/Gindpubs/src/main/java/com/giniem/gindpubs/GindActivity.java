@@ -27,7 +27,6 @@ import android.webkit.WebViewClient;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import com.giniem.gindpubs.R.*;
 import com.giniem.gindpubs.client.GindMandator;
 import com.giniem.gindpubs.model.BookJson;
 import com.giniem.gindpubs.model.Magazine;
@@ -45,6 +44,7 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -148,28 +148,7 @@ public class GindActivity extends Activity implements GindMandator {
                 Log.e(this.getClass().toString(), "No valid Google Play Services APK found.");
             }
 
-            File cachedShelf = new File(Configuration.getAbsoluteCacheDir(this) + File.separator + this.getString(R.string.shelf));
-            if (Configuration.hasInternetConnection(this)) {
-                // We get the shelf json asynchronously.
-                DownloaderTask downloadShelf = new DownloaderTask(
-                        this.getApplicationContext(),
-                        this,
-                        this.DOWNLOAD_SHELF_FILE,
-                        getString(R.string.newstand_manifest_url),
-                        this.shelfFileName,
-                        this.shelfFileTitle,
-                        this.shelfFileDescription,
-                        Configuration.getCacheDirectory(this),
-                        this.shelfFileVisibility);
-                //downloadShelf.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
-                downloadShelf.execute();
-            } else if (cachedShelf.exists()) {
-                this.readShelf(Configuration.getAbsoluteCacheDir(this) + File.separator + this.getString(R.string.shelf));
-            } else {
-                Toast.makeText(this, "You must have an internet connection to download the shelf.",
-                        Toast.LENGTH_LONG).show();
-                this.finish();
-            }
+            downloadShelf();
 		} catch (Exception e) {
 			e.printStackTrace();
 			Log.e(this.getClass().getName(), "Cannot load configuration.");
@@ -188,6 +167,70 @@ public class GindActivity extends Activity implements GindMandator {
 		getMenuInflater().inflate(R.menu.gind, menu);
 		return true;
 	}
+
+    public void downloadShelf() {
+        String cacheShelfPath = Configuration.getAbsoluteCacheDir(this) + File.separator + this.getString(R.string.shelf);
+        File cachedShelf = new File(cacheShelfPath);
+        File backup = new File(cacheShelfPath + ".backup");
+        boolean useBackup = false;
+
+        // We make a copy of the shelf as backup in case the download fails.
+        if (cachedShelf.exists()) {
+            try {
+                String contents = Configuration.readFile(cachedShelf);
+
+                if (cachedShelf.length() == 0L && contents.trim().isEmpty()) {
+                    Log.d(this.getClass().toString(), "Cached shelf.json file is empty.");
+                    cachedShelf.delete();
+
+                    if (backup.exists()) {
+                        Log.d(this.getClass().toString(), "shelf.json backup file found, the system will use it.");
+                        Configuration.copyFile(backup, cachedShelf);
+                        useBackup = true;
+                    }
+                } else {
+
+                    if (backup.exists()) {
+                        backup.delete();
+                    }
+
+                    Log.d(this.getClass().toString(), "Creating backup for the shelf.json file.");
+                    Configuration.copyFile(cachedShelf, new File(cacheShelfPath + ".backup"));
+                }
+            } catch (IOException ioe) {
+                Toast.makeText(this, "Cannot download the magazine shelf.",
+                        Toast.LENGTH_LONG).show();
+                this.finish();
+            }
+        }
+
+        if (Configuration.hasInternetConnection(this) && useBackup == false) {
+            // We get the shelf json asynchronously.
+            DownloaderTask downloadShelf = new DownloaderTask(
+                    this.getApplicationContext(),
+                    this,
+                    this.DOWNLOAD_SHELF_FILE,
+                    getString(R.string.newstand_manifest_url),
+                    this.shelfFileName,
+                    this.shelfFileTitle,
+                    this.shelfFileDescription,
+                    Configuration.getCacheDirectory(this),
+                    this.shelfFileVisibility);
+            downloadShelf.execute();
+        } else if (cachedShelf.exists()) {
+            this.readShelf(cacheShelfPath);
+
+            if (backup.exists()) {
+                Log.d(this.getClass().toString(), "Used shelf.json backup file, deleting backup file.");
+                backup.delete();
+                useBackup = false;
+            }
+        } else {
+            Toast.makeText(this, "You must have an internet connection to download the shelf.",
+                    Toast.LENGTH_LONG).show();
+            this.finish();
+        }
+    }
 
     private String getRegistrationId(Context context) {
         final SharedPreferences prefs = getGCMPreferences(context);
@@ -461,6 +504,10 @@ public class GindActivity extends Activity implements GindMandator {
                     Toast.makeText(this, "Please insert an SD card to use the app.",
                             Toast.LENGTH_LONG).show();
                     finish();
+                }  else {
+                    Toast.makeText(this, "Cannot download the magazine shelf.",
+                            Toast.LENGTH_LONG).show();
+                    this.finish();
                 }
                 break;
             case REGISTRATION_TASK:
