@@ -14,10 +14,11 @@
     <string name="no">No</string>
 
     <!-- Shelf URL -->
-    <string name="newstand_manifest_url">http://bakerframework.com/demo/shelf.json</string>
+    <string name="newstand_manifest_url">https://magaziner.revistacinematografica.com.ni/magazine/json-list/env/PRODUCTION/version/1.3/device/ANDROID</string>
     <string name="purchase_confirmation_url">http://bakerframework.com/demo/shelf.json</string>
     <string name="purchases_url">http://bakerframework.com/demo/shelf.json</string>
     <string name="post_apns_token_url">http://bakerframework.com/demo/shelf.json</string>
+    <string name="download_report_url">http://bakerframework.com/demo/shelf.json</string>
 
     <!-- Referrer strings to use with links to open them in the device's internet browser or in the same view from gindpubs
         For more information about links: https://github.com/bakerframework/baker/wiki/Managing-links-and-urls

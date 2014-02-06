@@ -2,10 +2,10 @@ package com.giniem.gindpubs.views;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,13 +35,13 @@ public class WebViewFragment extends Fragment {
     private WebChromeClient.CustomViewCallback customViewCallback;
     private View customView;
     public CustomChromeClient chromeClient = new CustomChromeClient();
-    private FragmentActivity parent;
+    private MagazineActivity activity;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 
-        parent = this.getActivity();
+        this.activity = (MagazineActivity) this.getActivity();
 
 		// The last two arguments ensure LayoutParams are inflated
 		// properly.
@@ -54,17 +54,19 @@ public class WebViewFragment extends Fragment {
 		webView = (CustomWebView) rootView.findViewById(R.id.webpage1);
 
         //Enable javascript
-		webView.getSettings().setJavaScriptEnabled(true);
-        //Add zoom controls
-        webView.getSettings().setBuiltInZoomControls(false);
+        webView.getSettings().setJavaScriptEnabled(true);
         //Set zoom enabled/disabled
         webView.getSettings().setSupportZoom(true);
         //Support zoom like normal browsers
         webView.getSettings().setUseWideViewPort(true);
+        //Disable zoom buttons
+        webView.getSettings().setDisplayZoomControls(false);
+        //Add zoom controls
+        webView.getSettings().setBuiltInZoomControls(true);
         //Load the page on the maximum zoom out available.
         webView.getSettings().setLoadWithOverviewMode(true);
 
-		webView.setWebChromeClient(chromeClient);
+        webView.setWebChromeClient(chromeClient);
         webView.setWebViewClient(new WebViewClient() {
 
             @Override
@@ -112,13 +114,13 @@ public class WebViewFragment extends Fragment {
                             stringUrl = url.getPath().substring(url.getPath().lastIndexOf("/") + 1);
                             Log.d(">>>URL_DATA", "FINAL INTERNAL HTML FILENAME = " + stringUrl);
 
-                            int index = ((MagazineActivity) parent).getJsonBook().getContents().indexOf(stringUrl);
+                            int index = activity.getJsonBook().getContents().indexOf(stringUrl);
 
                             if (index != -1) {
                                 Log.d(this.getClass().toString(), "Index to load: " + index
                                         + ", page: " + stringUrl);
 
-                                ((MagazineActivity) parent).getPager().setCurrentItem(index);
+                                activity.getPager().setCurrentItem(index);
                                 view.setVisibility(View.GONE);
                             } else {
 
@@ -186,6 +188,8 @@ public class WebViewFragment extends Fragment {
             customViewContainer.setVisibility(View.VISIBLE);
             customViewContainer.addView(view);
             customViewCallback = callback;
+
+            activity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
         }
 
         @Override
@@ -203,6 +207,8 @@ public class WebViewFragment extends Fragment {
             // Remove the custom view from its container.
             customViewContainer.removeView(customView);
             customViewCallback.onCustomViewHidden();
+
+            activity.resetOrientation();
 
             customView = null;
         }

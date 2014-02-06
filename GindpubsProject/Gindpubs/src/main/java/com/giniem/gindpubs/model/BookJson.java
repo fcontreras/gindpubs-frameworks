@@ -226,7 +226,7 @@ public class BookJson {
 //		this.date = sdfInput.parse(json.getString("date"));
 //		this.url = json.getString("url");
 //		this.cover = json.getString("cover");
-//		this.orientation = json.getString("orientation");
+		this.orientation = json.getString("orientation");
 //		this.zoomable = json.getBoolean("zoomable");
 //		this.background = json.getString("-baker-background");
 //		this.verticalBounce = json.getBoolean("-baker-vertical-bounce");

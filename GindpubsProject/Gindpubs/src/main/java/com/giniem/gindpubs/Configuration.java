@@ -191,6 +191,7 @@ public class Configuration {
         }
         return query_pairs;
     }
+
     public static boolean deleteDirectory(final String path) {
         File directory = new File(path);
 

@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import android.util.Log;
 
 import com.giniem.gindpubs.model.BookJson;
 
@@ -41,9 +42,11 @@ public class WebViewFragmentPagerAdapter extends FragmentStatePagerAdapter {
 	@Override
 	public Fragment getItem(int i) {
         Bundle args = new Bundle();
-		args.putString(WebViewFragment.ARG_OBJECT,
-				this.magazinePath + book.getMagazineName() + File.separator
-						+ book.getContents().get(i));
+
+        String page = this.magazinePath + book.getMagazineName() + File.separator
+                + book.getContents().get(i);
+        Log.d(this.getClass().getName(), "Loading page " + page);
+        args.putString(WebViewFragment.ARG_OBJECT, page);
 
         return Fragment.instantiate(context, WebViewFragment.class.getName(), args);
 	}

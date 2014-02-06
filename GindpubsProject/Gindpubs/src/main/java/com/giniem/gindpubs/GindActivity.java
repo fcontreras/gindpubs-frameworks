@@ -22,6 +22,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.LinearLayout;
@@ -141,9 +142,7 @@ public class GindActivity extends Activity implements GindMandator {
 
                 Log.d(this.getClass().getName(), "Obtained registration ID: " + registrationId);
 
-                if (registrationId.isEmpty()) {
-                    registerInBackground();
-                }
+                registerInBackground();
             } else {
                 Log.e(this.getClass().toString(), "No valid Google Play Services APK found.");
             }
@@ -310,6 +309,8 @@ public class GindActivity extends Activity implements GindMandator {
 		setContentView(R.layout.loading);
 		WebView webview = (WebView) findViewById(R.id.loadingWebView);
         webview.getSettings().setJavaScriptEnabled(true);
+        webview.getSettings().setUseWideViewPort(true);
+        webview.getSettings().setLoadWithOverviewMode(true);
         webview.setBackgroundColor(Color.TRANSPARENT);
 		webview.setWebViewClient(new WebViewClient() {
 
@@ -325,8 +326,8 @@ public class GindActivity extends Activity implements GindMandator {
     private void loadHeader() {
         WebView webview = (WebView) findViewById(R.id.headerView);
         webview.getSettings().setJavaScriptEnabled(true);
+        webview.getSettings().setUseWideViewPort(true);
         //webview.getSettings().setLoadWithOverviewMode(true);
-        //webview.getSettings().setUseWideViewPort(true);
         webview.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
@@ -334,14 +335,7 @@ public class GindActivity extends Activity implements GindMandator {
             }
         });
         webview.setBackgroundColor(Color.TRANSPARENT);
-        webview.setWebViewClient(new WebViewClient() {
-
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                view.loadUrl(url);
-                return true;
-            }
-        });
+        webview.setWebChromeClient(new WebChromeClient());
         webview.loadUrl(getString(R.string.headerUrl));
     }
 
@@ -393,6 +387,8 @@ public class GindActivity extends Activity implements GindMandator {
                 //Add layout
 				flowLayout.addView(thumb);
 			}
+
+            isLoading = false;
 		} catch (Exception e) {
             //TODO: Notify the user about the issue.
 			e.printStackTrace();
@@ -467,6 +463,8 @@ public class GindActivity extends Activity implements GindMandator {
             if (this.startDownload) {
                 this.startDownloadLastContent(json);
             }
+
+            // We try to unzip any pending packages.
             this.unzipPendingPackages();
         } catch (Exception e) {
             Log.e(this.getClass().getName(), "Upss, we colapsed.. :( "
@@ -504,7 +502,7 @@ public class GindActivity extends Activity implements GindMandator {
                     Toast.makeText(this, "Please insert an SD card to use the app.",
                             Toast.LENGTH_LONG).show();
                     finish();
-                }  else {
+                } else {
                     Toast.makeText(this, "Cannot download the magazine shelf.",
                             Toast.LENGTH_LONG).show();
                     this.finish();
@@ -588,6 +586,8 @@ public class GindActivity extends Activity implements GindMandator {
 
                 thumb.startUnzip(filepath, thumb.getMagazine().getName());
             } else if (thumb.isDownloading()) {
+
+                Log.d(this.getClass().getName(), "Continue download of: " + thumb.getMagazine().getName());
 
                 // We continue the download.
                 thumb.startPackageDownload();

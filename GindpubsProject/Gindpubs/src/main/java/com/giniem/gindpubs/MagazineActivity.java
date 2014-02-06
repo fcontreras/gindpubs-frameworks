@@ -3,12 +3,14 @@ package com.giniem.gindpubs;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NavUtils;
 import android.support.v4.view.GestureDetectorCompat;
+import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.KeyEvent;
@@ -42,6 +44,11 @@ public class MagazineActivity extends FragmentActivity {
 	private WebViewFragmentPagerAdapter webViewPagerAdapter;
 	private CustomWebViewPager pager;
     private BookJson jsonBook;
+
+    private final String LANDSCAPE = "LANDSCAPE";
+    private final String PORTRAIT = "PORTRAIT";
+
+    private String orientation;
 
     public BookJson getJsonBook() {
         return this.jsonBook;
@@ -85,7 +92,9 @@ public class MagazineActivity extends FragmentActivity {
             jsonBook.setMagazineName(intent
 					.getStringExtra(GindActivity.MAGAZINE_NAME));
             jsonBook.fromJson(intent.getStringExtra(GindActivity.BOOK_JSON_KEY));
-			this.setPagerView(jsonBook);
+
+            this.setOrientation(jsonBook.getOrientation());
+            this.setPagerView(jsonBook);
 
 			gestureDetector = new GestureDetectorCompat(this,
 					new MyGestureListener());
@@ -95,6 +104,24 @@ public class MagazineActivity extends FragmentActivity {
 					Toast.LENGTH_LONG).show();
 		}
 	}
+
+    private void setOrientation(String _orientation) {
+
+        _orientation = _orientation.toUpperCase();
+        this.orientation = _orientation;
+
+        if (PORTRAIT.equals(_orientation)) {
+            this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        } else if (LANDSCAPE.equals(_orientation)) {
+            this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        } else {
+            this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
+        }
+    }
+
+    public void resetOrientation() {
+        this.setOrientation(this.orientation);
+    }
 
 	/**
 	 * Set up the {@link android.app.ActionBar}, if the API is available.
@@ -142,6 +169,13 @@ public class MagazineActivity extends FragmentActivity {
 				getSupportFragmentManager(), book, path, this);
 		pager = (CustomWebViewPager) findViewById(R.id.pager);
 		pager.setAdapter(webViewPagerAdapter);
+        pager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                Log.d(this.getClass().getName(), "Loading page at: " + position);
+            }
+        });
 
 		CustomWebView viewIndex = (CustomWebView) findViewById(R.id.webViewIndex);
 		viewIndex.getSettings().setJavaScriptEnabled(true);

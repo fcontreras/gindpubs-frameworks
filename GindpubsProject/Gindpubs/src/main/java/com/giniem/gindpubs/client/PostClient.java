@@ -48,7 +48,9 @@ public class PostClient {
             DefaultHttpClient httpClient = new DefaultHttpClient();
             HttpPost httpPost = new HttpPost(url);
 
-            httpPost.setEntity(new UrlEncodedFormEntity(this.parameters));
+            if (this.parameters != null) {
+                httpPost.setEntity(new UrlEncodedFormEntity(this.parameters));
+            }
 
             HttpResponse response = httpClient.execute(httpPost);
 

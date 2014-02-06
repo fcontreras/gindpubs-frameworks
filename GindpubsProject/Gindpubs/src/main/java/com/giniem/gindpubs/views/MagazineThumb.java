@@ -4,7 +4,6 @@ import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
@@ -22,6 +21,7 @@ import com.giniem.gindpubs.Configuration;
 import com.giniem.gindpubs.GindActivity;
 import com.giniem.gindpubs.R;
 import com.giniem.gindpubs.client.GindMandator;
+import com.giniem.gindpubs.client.PostClientTask;
 import com.giniem.gindpubs.model.BookJson;
 import com.giniem.gindpubs.model.Magazine;
 import com.giniem.gindpubs.workers.BookJsonParserTask;
@@ -30,9 +30,6 @@ import com.giniem.gindpubs.workers.MagazineDeleteTask;
 import com.giniem.gindpubs.workers.UnzipperTask;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
 
 
 public class MagazineThumb extends LinearLayout implements GindMandator {
@@ -71,6 +68,10 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
      */
     private UnzipperTask unzipperTask;
     /**
+     * Used to send the report after a magazine has downloaded and unzipped.
+     */
+    private PostClientTask postClientTask;
+    /**
      * Issue readable state
      */
     private boolean readable = false;
@@ -81,6 +82,7 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
     private final int MAGAZINE_DOWNLOAD_VISIBILITY = DownloadManager.Request.VISIBILITY_VISIBLE;
     private final int UNZIP_MAGAZINE_TASK = 2;
     private final int MAGAZINE_DELETE_TASK = 3;
+    private final int POST_DOWNLOAD_TASK = 4;
 
     private Context context;
 
@@ -214,8 +216,8 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
      */
     public void enableReadArchiveActions() {
         findViewById(R.id.btnDownload).setVisibility(View.GONE);
-        findViewById(R.id.btnArchive).setVisibility(View.VISIBLE);
-        findViewById(R.id.btnRead).setVisibility(View.VISIBLE);
+        findViewById(R.id.actions_ui).setVisibility(View.VISIBLE);
+        //findViewById(R.id.btnRead).setVisibility(View.VISIBLE);
 
         //Issue becomes readable
         readable = true;
@@ -289,6 +291,7 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
     public void startPackageDownload() {
 
         if (null == this.packDownloader) {
+
             //Package downloader task initialization.
             packDownloader = new DownloaderTask(this.context,
                     this,
@@ -309,7 +312,7 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
             //Show progressbar and progress text
             findViewById(R.id.txtProgress).setVisibility(View.VISIBLE);
             ((TextView) findViewById(R.id.txtProgress)).setText(R.string.downloading);
-            findViewById(R.id.prgDownload).setVisibility(View.VISIBLE);
+            findViewById(R.id.progress_ui).setVisibility(View.VISIBLE);
 
             packDownloader.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "");
         //}
@@ -328,8 +331,8 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
         }
 
         findViewById(R.id.btnDownload).setVisibility(View.GONE);
-        findViewById(R.id.btnArchive).setVisibility(View.GONE);
-        findViewById(R.id.btnRead).setVisibility(View.GONE);
+        findViewById(R.id.actions_ui).setVisibility(View.GONE);
+//        findViewById(R.id.btnRead).setVisibility(View.GONE);
         //Shows and set the text of progress
         ((TextView)findViewById(R.id.txtProgress)).setText(R.string.unzipping);
         findViewById(R.id.txtProgress).setVisibility(View.VISIBLE);
@@ -352,11 +355,25 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
      */
     private void enableDownloadAction() {
         findViewById(R.id.btnDownload).setVisibility(View.VISIBLE);
-        findViewById(R.id.btnArchive).setVisibility(View.GONE);
-        findViewById(R.id.btnRead).setVisibility(View.GONE);
+        findViewById(R.id.actions_ui).setVisibility(View.GONE);
+        //findViewById(R.id.btnRead).setVisibility(View.GONE);
 
         //Issue become non readable
         readable = false;
+    }
+
+    private void sendDownloadReport() {
+        postClientTask = new PostClientTask(POST_DOWNLOAD_TASK, this);
+
+        String url = this.context.getString(R.string.download_report_url);
+        url = url.replace(":issue_id", this.getMagazine().getName());
+        url = url.replace(":device_type", "ANDROID");
+        url = url.replace(":user_id", GindActivity.userAccount);
+
+        Log.d(this.getClass().getName(), "URL TO REPORT: " + url);
+
+        postClientTask.setUrl(url);
+        postClientTask.execute();
     }
 
     /**
@@ -377,8 +394,7 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
 
             //Updating UI
             ((TextView)findViewById(R.id.txtProgress))
-                    .setText(String.valueOf(fileProgress) + " MB / " + length
-                            + " MB");
+                    .setText(String.valueOf(fileProgress) + " MB (" + intProgress + " %)");
             ((ProgressBar)findViewById(R.id.prgDownload)).setProgress(intProgress);
         }
     }
@@ -394,7 +410,7 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
     public void postExecute(final int taskId, String... results) {
         //Hide progress
         findViewById(R.id.txtProgress).setVisibility(View.GONE);
-        findViewById(R.id.prgDownload).setVisibility(View.GONE);
+        findViewById(R.id.progress_ui).setVisibility(View.GONE);
 
         //TODO: Handle failures.
         switch (taskId) {
@@ -418,6 +434,7 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
                 this.unzipperTask = null;
                 if (results[0] == "SUCCESS") {
                     this.enableReadArchiveActions();
+                    this.sendDownloadReport();
                 } else {
                     Toast.makeText(this.getContext(), "Could not extract the package. Possibly corrupted.",
                             Toast.LENGTH_LONG).show();
@@ -428,6 +445,10 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
                 //the user download the issue again.
                 if (results[0] == "SUCCESS") {
                     this.enableDownloadAction();
+                }
+                break;
+            case POST_DOWNLOAD_TASK:
+                if (results[0] != "ERROR") {
                 }
                 break;
         }
