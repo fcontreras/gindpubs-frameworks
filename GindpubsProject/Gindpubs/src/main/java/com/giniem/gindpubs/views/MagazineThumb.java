@@ -173,7 +173,7 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
         //Click on the thumbs image
         findViewById(R.id.imgCover).setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
-                if (readable) {
+                if (readable && !MagazineThumb.this.isDownloading()) {
                     readIssue();
                 } else if (!MagazineThumb.this.isDownloading()) {
                     startPackageDownload();
@@ -306,8 +306,11 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
 
         //If the issue is not downloading we start the download, otherwise, do nothing.
         //if (!isDownloading()) {
-            //Hide download button
+            // Hide download button
             findViewById(R.id.btnDownload).setVisibility(View.GONE);
+
+            // Hide Read and Archive Buttons
+            findViewById(R.id.actions_ui).setVisibility(View.GONE);
 
             //Show progressbar and progress text
             findViewById(R.id.txtProgress).setVisibility(View.VISIBLE);

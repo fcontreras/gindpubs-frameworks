@@ -80,7 +80,7 @@ public class GindActivity extends Activity implements GindMandator {
     private String registrationId;
 
     // Used to auto-start download of last content if a notification is received.
-    private boolean startDownload = false;
+    private String startDownload = "";
 
     // For parsing dates
     SimpleDateFormat sdfInput;
@@ -101,7 +101,9 @@ public class GindActivity extends Activity implements GindMandator {
                 getString(R.string.outputDateFormat), Locale.US);
 
         Intent intent = this.getIntent();
-        this.startDownload = intent.hasExtra("START_DOWNLOAD");
+        if (intent.hasExtra("START_DOWNLOAD")) {
+            this.startDownload = intent.getStringExtra("START_DOWNLOAD");
+        }
 
 		try {
 			// Remove title bar
@@ -460,8 +462,10 @@ public class GindActivity extends Activity implements GindMandator {
 
             //Create thumbs
             this.createThumbnails(json);
-            if (this.startDownload) {
+            if (this.startDownload.equals("latest")) {
                 this.startDownloadLastContent(json);
+            } else if (!this.startDownload.isEmpty()) {
+                this.startDownloadByName(this.startDownload);
             }
 
             // We try to unzip any pending packages.
@@ -537,41 +541,50 @@ public class GindActivity extends Activity implements GindMandator {
 
     private void startDownloadLastContent(final JSONArray jsonArray) {
         try {
-            ArrayList<Magazine> list = new ArrayList<Magazine>();
+            ArrayList<Date> list = new ArrayList<Date>();
             JSONObject jsonObject;
-            Magazine magazine;
+            Date date;
 
             for (int i = 0; i < jsonArray.length(); i++) {
                 jsonObject = new JSONObject(jsonArray.getString(i));
-                magazine = new Magazine();
 
-                Date date = sdfInput.parse(jsonObject.getString("date"));
-                String dateString = sdfOutput.format(date);
+                String rawDate = jsonObject.getString("date");
+                date = sdfInput.parse(rawDate);
 
-                magazine.setDate(dateString);
-                magazine.setName(new String(jsonObject.getString("name").getBytes("UTF-8"), "UTF-8"));
-
-                list.add(magazine);
+                list.add(date);
             }
 
-            Collections.sort(list, new Comparator<Magazine>() {
+            Collections.sort(list, new Comparator<Date>() {
 
                 @Override
-                public int compare(Magazine s, Magazine s2) {
-                    return s2.getDate().compareTo(s.getDate());
+                public int compare(Date s, Date s2) {
+                    return s2.compareTo(s);
                 }
             });
 
             for (int i = 0; i < flowLayout.getChildCount(); i++) {
                 MagazineThumb thumb = (MagazineThumb) flowLayout.getChildAt(i);
-                if (thumb.getMagazine().getName().equals(list.get(0).getName()) &&
-                        thumb.getMagazine().getDate().equals(list.get(0).getDate())) {
+
+                String dateString = sdfOutput.format(list.get(0));
+
+                if (thumb.getMagazine().getDate().equals(dateString)) {
                     Log.d("Automatically starting download of ", thumb.getMagazine().getName());
                     thumb.startPackageDownload();
                 }
             }
         } catch (Exception ex) {
             ex.printStackTrace();
+        }
+    }
+
+    private void startDownloadByName(final String name) {
+        for (int i = 0; i < flowLayout.getChildCount(); i++) {
+            MagazineThumb thumb = (MagazineThumb) flowLayout.getChildAt(i);
+
+            if (thumb.getMagazine().getName().equals(name)) {
+                Log.d("Automatically starting download of ", thumb.getMagazine().getName());
+                thumb.startPackageDownload();
+            }
         }
     }
 
