@@ -51,6 +51,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class GindActivity extends Activity implements GindMandator {
@@ -460,6 +461,9 @@ public class GindActivity extends Activity implements GindMandator {
             //Parse the shelf file
             JSONArray json = new JSONArray(rawData.toString());
 
+            //Sort the shelf
+            json = sortJsonArray(json);
+
             //Create thumbs
             this.createThumbnails(json);
             if (this.startDownload.equals("latest")) {
@@ -477,6 +481,34 @@ public class GindActivity extends Activity implements GindMandator {
                     Toast.LENGTH_LONG).show();
             this.finish();
         }
+    }
+
+    //Sort JSONArray
+    public static JSONArray sortJsonArray(JSONArray array) throws JSONException {
+        List<JSONObject> jsons = new ArrayList<JSONObject>();
+        for (int i = 0; i < array.length(); i++) {
+            jsons.add(array.getJSONObject(i));
+        }
+        Collections.sort(jsons, new Comparator<JSONObject>() {
+            @Override
+            public int compare(JSONObject rhs, JSONObject lhs) {
+                String lid = null;
+                try {
+                    lid = lhs.getString("date");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                String rid = null;
+                try {
+                    rid = rhs.getString("date");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                // Here you could parse string id to integer and then compare.
+                return lid.compareTo(rid);
+            }
+        });
+        return new JSONArray(jsons);
     }
 
     /**
