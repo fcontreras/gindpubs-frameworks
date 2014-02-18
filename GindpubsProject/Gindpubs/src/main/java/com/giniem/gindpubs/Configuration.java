@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Environment;
+import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -21,6 +22,8 @@ import java.util.Map;
 
 public class Configuration {
 
+    private static final String LOG_TITLE = ">>>CONFIGURATION";
+
     /**
      * Sets the name of the cache folder to be used by the application.
      */
@@ -36,7 +39,7 @@ public class Configuration {
      */
 	private Configuration() {}
 
-	// Tries to use external storage, if not available then fallback to intenal.
+	// Tries to use external storage, if not available then fallback to internal.
 	public static File getDiskCacheDir(Context context) {
 		String cachePath = "";
 
@@ -62,13 +65,19 @@ public class Configuration {
 		if (Environment.MEDIA_MOUNTED.equals(Environment
 				.getExternalStorageState())) {
 
-			File externalDir = context.getExternalFilesDir(null);
+            Log.d(LOG_TITLE, "EXTERNAL STORAGE IS MOUNTED.");
+
+			File externalDir = context.getExternalFilesDir("");
 			if (null != externalDir) {
+                Log.d(LOG_TITLE, "USING SD MEMORY CARD.");
 				appPath = externalDir.getPath();
+                Log.d(LOG_TITLE, "EXTERNAL PATH TO USE: " + appPath);
 			} else {
+                Log.d(LOG_TITLE, "USING INTERNAL STORAGE.");
 				appPath = context.getFilesDir().getPath();
 			}
 		} else {
+            Log.d(LOG_TITLE, "EXTERNAL STORAGE IS *NOT* MOUNTED.");
 			appPath = context.getFilesDir().getPath();
 		}
 		return new File(appPath + File.separator
@@ -171,11 +180,11 @@ public class Configuration {
                 .concat(Configuration.MAGAZINES_FILES_DIR);
     }
 	
-	public static boolean hasInternetConnection(Context context) {
+	public static boolean hasNetworkConnection(Context context) {
 		ConnectivityManager cm = (ConnectivityManager) context
 				.getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo netInfo = cm.getActiveNetworkInfo();
-		if (netInfo != null && netInfo.isConnectedOrConnecting()) {
+		if (netInfo != null && netInfo.isConnected()) {
 			return true;
 		}
 		return false;

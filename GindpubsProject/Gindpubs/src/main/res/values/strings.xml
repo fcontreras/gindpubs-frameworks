@@ -64,4 +64,9 @@
 
     <string name="title_activity_video">VideoActivity</string>
 
+    <!-- Hostname to try to reach to test the internet connection on the device, e.g. when downloading the shelf, check if your server is reachable. -->
+    <string name="check_internet_with_host">http://google.com</string>
+    <!-- The time in milliseconds before considering the host is unreachable and no internet access. -->
+    <integer name="check_internet_timeout">15000</integer>
+
 </resources>

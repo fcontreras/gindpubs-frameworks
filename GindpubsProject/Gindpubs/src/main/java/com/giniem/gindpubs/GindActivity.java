@@ -33,6 +33,7 @@ import com.giniem.gindpubs.model.BookJson;
 import com.giniem.gindpubs.model.Magazine;
 import com.giniem.gindpubs.views.FlowLayout;
 import com.giniem.gindpubs.views.MagazineThumb;
+import com.giniem.gindpubs.workers.CheckInternetTask;
 import com.giniem.gindpubs.workers.DownloaderTask;
 import com.giniem.gindpubs.workers.GCMRegistrationWorker;
 import com.google.android.gms.common.ConnectionResult;
@@ -74,6 +75,7 @@ public class GindActivity extends Activity implements GindMandator {
     //Task to be done by this activity
     private final int DOWNLOAD_SHELF_FILE = 0;
     private final int REGISTRATION_TASK = 1;
+    private final int CHECK_INTERNET_TASK = 2;
 
     // For Google Cloud Messaging
     private GoogleCloudMessaging gcm;
@@ -149,7 +151,8 @@ public class GindActivity extends Activity implements GindMandator {
                 Log.e(this.getClass().toString(), "No valid Google Play Services APK found.");
             }
 
-            downloadShelf();
+            CheckInternetTask checkInternetTask = new CheckInternetTask(this, this, CHECK_INTERNET_TASK);
+            checkInternetTask.execute();
 		} catch (Exception e) {
 			e.printStackTrace();
 			Log.e(this.getClass().getName(), "Cannot load configuration.");
@@ -169,43 +172,50 @@ public class GindActivity extends Activity implements GindMandator {
 		return true;
 	}
 
-    public void downloadShelf() {
+    public void downloadShelf(final String internetAccess) {
         String cacheShelfPath = Configuration.getAbsoluteCacheDir(this) + File.separator + this.getString(R.string.shelf);
         File cachedShelf = new File(cacheShelfPath);
         File backup = new File(cacheShelfPath + ".backup");
         boolean useBackup = false;
+        boolean hasInternetAccess = (internetAccess.equals("TRUE")) ? true : false;
+        Log.d(this.getClass().toString(), "INTERNET ACCESS RAW: " + internetAccess);
 
-        // We make a copy of the shelf as backup in case the download fails.
-        if (cachedShelf.exists()) {
-            try {
-                String contents = Configuration.readFile(cachedShelf);
+        if (hasInternetAccess) {
+            Log.d(this.getClass().toString(), "INTERNET ACCESS AVAILABLE, WILL TRY TO CREATE BACKUP SHELF.");
+            // We make a copy of the shelf as backup in case the download fails.
+            if (cachedShelf.exists()) {
+                try {
+                    String contents = Configuration.readFile(cachedShelf);
 
-                if (cachedShelf.length() == 0L && contents.trim().isEmpty()) {
-                    Log.d(this.getClass().toString(), "Cached shelf.json file is empty.");
-                    cachedShelf.delete();
+                    if (cachedShelf.length() == 0L && contents.trim().isEmpty()) {
+                        Log.d(this.getClass().toString(), "Cached shelf.json file is empty.");
+                        cachedShelf.delete();
 
-                    if (backup.exists()) {
-                        Log.d(this.getClass().toString(), "shelf.json backup file found, the system will use it.");
-                        Configuration.copyFile(backup, cachedShelf);
-                        useBackup = true;
+                        if (backup.exists()) {
+                            Log.d(this.getClass().toString(), "shelf.json backup file found, the system will use it.");
+                            Configuration.copyFile(backup, cachedShelf);
+                            useBackup = true;
+                        }
+                    } else {
+
+                        if (backup.exists()) {
+                            backup.delete();
+                        }
+
+                        Log.d(this.getClass().toString(), "Creating backup for the shelf.json file.");
+                        Configuration.copyFile(cachedShelf, new File(cacheShelfPath + ".backup"));
                     }
-                } else {
-
-                    if (backup.exists()) {
-                        backup.delete();
-                    }
-
-                    Log.d(this.getClass().toString(), "Creating backup for the shelf.json file.");
-                    Configuration.copyFile(cachedShelf, new File(cacheShelfPath + ".backup"));
+                } catch (IOException ioe) {
+                    Toast.makeText(this, "Cannot download the magazine shelf.",
+                            Toast.LENGTH_LONG).show();
+                    this.finish();
                 }
-            } catch (IOException ioe) {
-                Toast.makeText(this, "Cannot download the magazine shelf.",
-                        Toast.LENGTH_LONG).show();
-                this.finish();
             }
+        } else {
+            Log.d(this.getClass().toString(), "NO INTERNET ACCESS, WON'T CREATE BACKUP SHELF.");
         }
 
-        if (Configuration.hasInternetConnection(this) && useBackup == false) {
+        if (hasInternetAccess && useBackup == false) {
             // We get the shelf json asynchronously.
             DownloaderTask downloadShelf = new DownloaderTask(
                     this.getApplicationContext(),
@@ -516,11 +526,15 @@ public class GindActivity extends Activity implements GindMandator {
                 if (params[0].equals("SUCCESS")) {
                     this.registrationId = params[1];
                     this.storeRegistrationId(this.getApplicationContext(), params[1]);
-                    break;
                 } else {
                     Toast.makeText(this, "Could not create registration ID for GCM services.",
                             Toast.LENGTH_LONG).show();
                 }
+                break;
+            case CHECK_INTERNET_TASK:
+                Log.d(this.getClass().toString(), "FINISHED TESTING INTERNET CONNECTION, CHECKING SHELF...");
+                this.downloadShelf(params[0]);
+                break;
         }
     }
 
@@ -528,8 +542,8 @@ public class GindActivity extends Activity implements GindMandator {
         int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
         if (resultCode != ConnectionResult.SUCCESS) {
             if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
-                GooglePlayServicesUtil.getErrorDialog(resultCode, this,
-                        PLAY_SERVICES_RESOLUTION_REQUEST).show();
+//                GooglePlayServicesUtil.getErrorDialog(resultCode, this,
+//                        PLAY_SERVICES_RESOLUTION_REQUEST).show();
             } else {
                 Log.e(this.getClass().toString(), "This device does not support Google Play Services.");
                 finish();
