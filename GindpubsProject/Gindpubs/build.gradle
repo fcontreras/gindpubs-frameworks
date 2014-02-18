@@ -6,7 +6,12 @@ buildscript {
         classpath 'com.android.tools.build:gradle:0.8.+'
     }
 }
-apply plugin: 'android'
+
+apply plugin: 'android-library'
+apply plugin: 'maven'
+
+version '1.0'
+group 'com.giniem'
 
 repositories {
     mavenCentral()
@@ -22,7 +27,16 @@ android {
     }
 }
 
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            // Due to a bug in gradle 4.2 to 4.4 we use this way to get the maven local repository path.
+            repository url: 'file://' + new File(System.getProperty('user.home'), '.m2/repository').absolutePath
+        }
+    }
+}
+task install(dependsOn: uploadArchives)
+
 dependencies {
-	compile 'com.android.support:appcompat-v7:18.0.0'
-    compile 'com.google.android.gms:play-services:3.2.25'
+    compile 'com.google.android.gms:play-services:4.1.32'
 }
