@@ -37,7 +37,7 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
     /**
      * The path to the application files, in the internal memory or SD card.
      */
-    private String dirPath;
+    private String magazinesDirectory;
     /**
      * The path to the application cache folder.
      */
@@ -96,7 +96,7 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
         this.context = context;
 
         //Paths to the application files
-        dirPath = Configuration.getApplicationRelativeMagazinesPath(context);
+        magazinesDirectory = Configuration.getMagazinesDirectory(context);//File.separator.concat(Configuration.MAGAZINES_FILES_DIR);//Configuration.getApplicationRelativeMagazinesPath(context);
         cachePath = Configuration.getCacheDirectory(context);
 
         //Set the magazine model to the thumb instance.
@@ -119,18 +119,18 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
                 this.magazine.getName() + context.getString(R.string.package_extension),
                 this.magazine.getTitle(),
                 this.magazine.getInfo(),
-                this.dirPath,
+                this.magazinesDirectory,
                 this.MAGAZINE_DOWNLOAD_VISIBILITY);
 
         //Unzipper task initialization
         unzipperTask = new UnzipperTask(context, this, UNZIP_MAGAZINE_TASK);
 
         //Logging initialization
-        Log.d(this.getClass().getName(), "Magazines relative dir: " + dirPath);
+        Log.d(this.getClass().getName(), "Magazines relative dir: " + magazinesDirectory);
     }
 
-    public String getDirPath() {
-        return this.dirPath;
+    public String getMagazinesDirectory() {
+        return this.magazinesDirectory;
     }
 
     /**
@@ -147,11 +147,11 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
 		inflater.inflate(R.layout.magazine_thumb_options, this, true);
 
         // Download the cover if not exists.
-        if (!(new File(Configuration.getAbsoluteCacheDir(this.getContext())
+        if (!(new File(Configuration.getCacheDirectory(this.getContext())
                 + File.separator + this.magazine.getName())).exists()) {
             thumbDownloader.execute();
         } else {
-            this.renderCover(Configuration.getAbsoluteCacheDir(
+            this.renderCover(Configuration.getCacheDirectory(
                     this.getContext()) + File.separator + this.magazine.getName());
         }
 
@@ -300,7 +300,7 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
                     this.magazine.getName() + context.getString(R.string.package_extension),
                     this.magazine.getTitle(),
                     this.magazine.getInfo(),
-                    this.dirPath,
+                    this.magazinesDirectory,
                     this.MAGAZINE_DOWNLOAD_VISIBILITY);
         }
 
@@ -427,7 +427,7 @@ public class MagazineThumb extends LinearLayout implements GindMandator {
             case THUMB_DOWNLOAD_TASK:
                 //If the thumbnail download ended successfully we will render the cover.
                 if (results[0] == "SUCCESS") {
-                    this.renderCover(Configuration.getAbsoluteCacheDir(
+                    this.renderCover(Configuration.getCacheDirectory(
                             this.getContext()) + File.separator + this.magazine.getName());
                 }
                 break;

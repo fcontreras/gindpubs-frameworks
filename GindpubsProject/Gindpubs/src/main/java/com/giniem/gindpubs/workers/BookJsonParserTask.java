@@ -20,12 +20,12 @@ import java.io.InputStreamReader;
 
 public class BookJsonParserTask extends AsyncTask<String, Long, BookJson> {
 
-	private File magazinesDirectory;
+	private String magazinesDirectory;
 	
 	private MagazineThumb magThumb;
 
 	public BookJsonParserTask(Context context) {
-		this.magazinesDirectory = Configuration.getDiskDir(context);
+		this.magazinesDirectory = Configuration.getMagazinesDirectory(context);
 	}
 	
 	public BookJsonParserTask(MagazineThumb thumb) {
@@ -37,7 +37,7 @@ public class BookJsonParserTask extends AsyncTask<String, Long, BookJson> {
 	protected BookJson doInBackground(String... params) {
 		BookJson result  = null;
 		
-		String workingDir = this.magazinesDirectory.getPath() + File.separator;
+		String workingDir = this.magazinesDirectory + File.separator;
 		File book = new File(workingDir + params[0] + File.separator + this.magThumb.getContext().getString(R.string.book));
 		
 		String rawJson;

@@ -173,7 +173,7 @@ public class GindActivity extends Activity implements GindMandator {
 	}
 
     public void downloadShelf(final String internetAccess) {
-        String cacheShelfPath = Configuration.getAbsoluteCacheDir(this) + File.separator + this.getString(R.string.shelf);
+        String cacheShelfPath = Configuration.getCacheDirectory(this) + File.separator + this.getString(R.string.shelf);
         File cachedShelf = new File(cacheShelfPath);
         File backup = new File(cacheShelfPath + ".backup");
         boolean useBackup = false;
@@ -419,21 +419,10 @@ public class GindActivity extends Activity implements GindMandator {
 		}
 	}
 
-    private boolean magazineDirExists(final String name) {
-        boolean result = false;
-
-        File magazine = new File(Configuration.getDiskDir(this).getPath()
-                + File.separator + name);
-        result = magazine.exists() && magazine.isDirectory();
-
-        return result;
-    }
-
 	private boolean magazineExists(final String name) {
 		boolean result = false;
 
-		File magazineDir = new File(Configuration.getDiskDir(this).getPath()
-				+ File.separator + name);
+		File magazineDir = new File(Configuration.getMagazinesDirectory(this) + File.separator + name);
 		result = magazineDir.exists() && magazineDir.isDirectory();
 
         if (result) {
@@ -447,8 +436,7 @@ public class GindActivity extends Activity implements GindMandator {
     private boolean magazineZipExists(final String name) {
         boolean result = false;
 
-        File magazine = new File(Configuration.getDiskDir(this).getPath()
-                + File.separator + name);
+        File magazine = new File(Configuration.getMagazinesDirectory(this) + File.separator + name);
         result = magazine.exists() && !magazine.isDirectory();
 
         return result;
@@ -609,7 +597,7 @@ public class GindActivity extends Activity implements GindMandator {
 
             if (this.magazineZipExists(zipName) && !thumb.isDownloading()) {
                 Log.d(this.getClass().toString(), "Continue unzip of " + thumb.getMagazine().getName());
-                String filepath = Environment.getExternalStorageDirectory().getPath() + thumb.getDirPath() + File.separator + zipName;
+                String filepath = Environment.getExternalStorageDirectory().getPath() + thumb.getMagazinesDirectory() + File.separator + zipName;
 
                 thumb.startUnzip(filepath, thumb.getMagazine().getName());
             } else if (thumb.isDownloading()) {

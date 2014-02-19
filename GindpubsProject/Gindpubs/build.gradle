@@ -30,7 +30,7 @@ android {
 uploadArchives {
     repositories {
         mavenDeployer {
-            // Due to a bug in gradle 4.2 to 4.4 we use this way to get the maven local repository path.
+            // Due to a bug in gradle 0.4.2 to 0.4.4 we use this way to get the maven local repository path.
             repository url: 'file://' + new File(System.getProperty('user.home'), '.m2/repository').absolutePath
         }
     }

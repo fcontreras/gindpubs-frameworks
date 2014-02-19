@@ -160,8 +160,7 @@ public class MagazineActivity extends FragmentActivity {
 	@SuppressLint("SetJavaScriptEnabled")
 	private void setPagerView(final BookJson book) {
 
-		String path = "file:///" + Configuration.getDiskDir(this).getPath()
-				+ File.separator;
+		String path = "file://" + Configuration.getMagazinesDirectory(this) + File.separator;
 
 		// ViewPager and its adapters use support library
 		// fragments, so use getSupportFragmentManager.

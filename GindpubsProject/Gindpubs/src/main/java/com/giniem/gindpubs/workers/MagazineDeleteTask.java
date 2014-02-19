@@ -2,7 +2,6 @@ package com.giniem.gindpubs.workers;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import android.os.Environment;
 import android.util.Log;
 
 import com.giniem.gindpubs.Configuration;
@@ -28,8 +27,7 @@ public class MagazineDeleteTask extends AsyncTask<String, Long, String> {
     protected String doInBackground(String... params) {
         String result = "ERROR";
 
-        String filepath = Environment.getExternalStorageDirectory().getPath()
-                + Configuration.getApplicationRelativeMagazinesPath(this.context)
+        String filepath = Configuration.getMagazinesDirectory(this.context)
                 + File.separator + params[0];
 
         if (Configuration.deleteDirectory(filepath)) {

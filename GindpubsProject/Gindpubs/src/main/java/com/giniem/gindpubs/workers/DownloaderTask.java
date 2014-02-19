@@ -8,9 +8,9 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.os.Environment;
 import android.util.Log;
 
+import com.giniem.gindpubs.Configuration;
 import com.giniem.gindpubs.GindActivity;
 import com.giniem.gindpubs.client.GindMandator;
 
@@ -28,7 +28,7 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
     private String fileName;
     private String fileTitle;
     private String fileDescription;
-    private String relativeDirPath;
+    private String downloadPath;
     private int visibility;
     Uri downloadedFile;
     private long downloadId = -1L;
@@ -42,7 +42,7 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
                           final String fileName,
                           final String fileTitle,
                           final String fileDesc,
-                          final String relDirPath,
+                          final String downloadDirectoryPath,
                           final int visibility) {
         this.context = context;
         this.mandator = mandator;
@@ -52,7 +52,7 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
         this.downloadUrl = downloadUrl;
         this.fileTitle = fileTitle;
         this.fileDescription = fileDesc;
-        this.relativeDirPath = relDirPath;
+        this.downloadPath = downloadDirectoryPath;
         this.visibility = visibility;
         this.downloadId = this.restoreDownloadId();
     }
@@ -148,7 +148,7 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
 
         if (this.isOverwrite() && !this.isDownloading()) {
 
-            String filepath = Environment.getExternalStorageDirectory().getPath() + relativeDirPath + File.separator + fileName;
+            String filepath = Configuration.getFilesDirectory(this.context) + downloadPath + File.separator + fileName;
 
             boolean result = this.fileExists(filepath);
 
@@ -159,7 +159,15 @@ public class DownloaderTask extends AsyncTask<String, Long, String> {
 
         String result = "";
         try {
-            request.setDestinationInExternalPublicDir(relativeDirPath, fileName);
+            Log.d(this.getClass().toString(), "USING RELATIVE PATH FOR DOWNLOAD: " + downloadPath);
+
+            File downloadDirectory = new File(this.downloadPath);
+            // If the download directory (or parent directories) does not exist, we create it.
+            if (!downloadDirectory.exists()) {
+                downloadDirectory.mkdirs();
+            }
+
+            request.setDestinationUri(Uri.parse("file://".concat(downloadPath.concat(File.separator).concat(fileName))));
 
             if (downloadId == -1L) {
                 downloadId = dm.enqueue(request);
